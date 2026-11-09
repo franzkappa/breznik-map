@@ -359,7 +359,6 @@
     <div class="legend-row"><span class="key-dot"></span><span data-i18n="kTown">Town</span></div>
     <div class="legend-row"><span class="key-dot water"></span><span data-i18n="kWater">Water</span></div>
     <div class="legend-row"><span class="key-dot mine"></span><span data-i18n="kMine">Mine</span></div>
-    <div class="legend-row"><span class="key-dot justice"></span><span data-i18n="kJustice">Justice</span></div>
     <div class="legend-row"><span class="key-line"></span><span data-i18n="kRoad">Roads</span></div>
     <div class="legend-row"><span class="key-line river"></span><span data-i18n="kRiver">Rivers</span></div>
     <div class="legend-row"><span class="key-line border"></span><span data-i18n="kBorder">Borders</span></div>
@@ -469,14 +468,8 @@ const PLACES = [
     }
   },
   {
-    id:'sofia', cat:'justice', coords:[42.6977,23.3219], size:19, dir:'right', off:[12,1], labelClass:'major',
+    id:'sofia', cat:'justice', coords:[42.6977,23.3219], size:19, dir:'right', off:[12,1], labelClass:'major', noPin:true,
     label:{ en:{name:'Sofia',sub:'The capital · 30 km east'}, it:{name:'Sofia',sub:'La capitale · 30 km a est'} },
-    kicker:{en:'The capital',it:'La capitale'}, title:{en:'Sofia',it:'Sofia'},
-    stat:{en:'30 km east of Breznik',it:'30 km a est di Breznik'},
-    body:{
-      en:'Bulgaria’s capital, less than an hour from Breznik. It is where local water crises become national politics: protests over Pernik, meetings between FESLT and other initiatives, and the Administrative Court where the group challenged Breznik Minerals on 22 October. The hearing was adjourned; FESLT says it will return.',
-      it:'La capitale bulgara, a meno di un’ora da Breznik. Qui le crisi idriche locali diventano politica nazionale: le proteste per Pernik, gli incontri tra FESLT e altre iniziative, e il tribunale amministrativo dove il gruppo ha contestato Breznik Minerals il 22 ottobre. L’udienza è stata rinviata; FESLT tornerà.'
-    }
   },
   {
     id:'pernik', cat:'town', coords:[42.6050,23.0350], size:18, dir:'left', off:[-12,2],
@@ -546,7 +539,7 @@ const I18N = {
     title:'Breznik and<br><em>the water crisis</em>',
     deck:'A map of the places named in the investigation: the town, its reservoir, the mine on Bardo Hill, and the wider geography of Bulgaria’s water crisis.',
     legendTitle:'Key',
-    kTown:'Town', kWater:'Water', kMine:'Mine', kJustice:'Justice',
+    kTown:'Town', kWater:'Water', kMine:'Mine',
     kRoad:'Roads', kRiver:'Rivers', kBorder:'Borders', kUrban:'Urban areas',
     source:'Basemap: © CARTO · © OpenStreetMap contributors · Locator: Natural Earth',
     attrib:'© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
@@ -577,6 +570,6 @@ function popupHTML(p){
 }
 </script>
 <script src="vendor/maplibre-gl.js"></script>
-<script src="map.js?v=20261109-2"></script>
+<script src="map.js?v=20261109-3"></script>
 </body>
 </html>

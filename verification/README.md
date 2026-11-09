@@ -12,7 +12,7 @@
 
 | Elemento | Contenuto |
 |---|---|
-| `index.html` | Mappa MapLibre + CARTO pronta per iframe: 10 pin visibili, pannello legenda, loghi OBCT/CIJI, inset locator. |
+| `index.html` | Mappa MapLibre + CARTO pronta per iframe: 9 pin visibili + Sofia come etichetta, pannello legenda, loghi OBCT/CIJI, inset locator. |
 | `README.md` | Descrizione della mappa, dei dati, dei file e delle istruzioni di rigenerazione. |
 | `assets/` | `locator.webp`, loghi OBCT/CIJI navy. |
 | `favicon.ico` | Icona 16×16, evita il 404 del favicon nella pagina. |
@@ -21,7 +21,7 @@
 
 La mappa contiene **13 POI** nell'array `PLACES` di `index.html`:
 
-- **10 pin visibili:** Breznik, Krassava reservoir, Konska River, Sofia, Pernik, Studena reservoir, Stomana steelworks, Pleven, Gorni Dabnik reservoir, Panagyurishte.
+- **9 pin visibili:** Breznik, Krassava reservoir, Konska River, Pernik, Studena reservoir, Stomana steelworks, Pleven, Gorni Dabnik reservoir, Panagyurishte. **Sofia** resta come etichetta (capitale, punto di riferimento), senza pin né popup.
 - **3 POI “detail”** (Bardo Hill, Milin Kamak, Bardo spring): hanno coordinate e popup ma non vengono disegnati come pin separati; sono descritti nel popup di Breznik. Sono stati verificati comunque.
 
 Inoltre la mappa ha 6 etichette testuali di Paesi/mare (Bulgaria, Romania, Serbia, Greece, Turkey, Black Sea) e un inset locator con 7 etichette.
@@ -95,7 +95,7 @@ Il popup non cambia: continua a descrivere la sorgente ferruginosa nota come “
 
 I controlli storici sulla vecchia `basemap_embed.webp` non sono più applicabili: la basemap è ora vettoriale e viene servita da CARTO. Il rettangolo e il pallino del locator restano coerenti con il punto di Breznik.
 
-**Caricamento pagina:** 10 pin visibili, 10 etichette, loader nascosto, nessun errore JavaScript e nessuna risposta HTTP ≥ 400, incluso il favicon (ora servito da `favicon.ico`). Verifica eseguita con Chrome headless e profilo nuovo via DevTools Protocol. I tre POI `detail` non sono disegnati per scelta (sono nel popup di Breznik).
+**Caricamento pagina:** 9 pin visibili, 10 etichette, loader nascosto, nessun errore JavaScript e nessuna risposta HTTP ≥ 400, incluso il favicon (ora servito da `favicon.ico`). Verifica eseguita con Chrome headless e profilo nuovo via DevTools Protocol. I tre POI `detail` non sono disegnati per scelta (sono nel popup di Breznik).
 
 ---
 

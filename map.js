@@ -207,10 +207,13 @@ function labelAnchor(dir) {
 }
 
 function addPlace(p) {
-  const el = pinElement(p);
-  const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
-    .setLngLat([p.coords[1], p.coords[0]])
-    .addTo(map);
+  let marker = null;
+  if (!p.noPin) {
+    const el = pinElement(p);
+    marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+      .setLngLat([p.coords[1], p.coords[0]])
+      .addTo(map);
+  }
 
   const { wrap, span } = labelElement(p);
   const a = labelAnchor(p.dir);

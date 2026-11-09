@@ -49,7 +49,7 @@ verification/              POI geolocation audit, script and minimal reference d
 favicon.ico
 ```
 
-The map uses the coordinates verified in `verification/`: 10 visible pins plus 3 local POIs (Bardo Hill, Milin Kamak, Bardo spring) described in the Breznik popup. The Bardo spring coordinate was corrected to `42.7313343, 22.9028954`.
+The map uses the coordinates verified in `verification/`: 9 pins plus Sofia as a label-only reference (no pin or popup), and 3 local POIs (Bardo Hill, Milin Kamak, Bardo spring) described in the Breznik popup. The Bardo spring coordinate was corrected to `42.7313343, 22.9028954`.
 
 ## Running and testing
 
