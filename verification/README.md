@@ -121,7 +121,7 @@ I controlli storici sulla vecchia `basemap_embed.webp` non sono più applicabili
    Il README dice che il popup di Breznik raggruppa “Bardo Hill, Milin Kamak, the Konska and the Bardo spring”. In realtà la Konska ha un pin separato (8 km a sud); il popup la cita, ma non è solo testuale. Piccola incoerenza documentale, non di geolocalizzazione.
 
 6. **Basemap CARTO.**  
-   La mappa usa ora MapLibre + CARTO Positron e l’hillshade SRTM. Le coordinate dei POI sono rimaste identiche; il caricamento della basemap dipende dalla rete. Il prototipo separato `carto-preview/` non esiste più: è diventato il progetto principale.
+   La mappa usa ora MapLibre + CARTO Positron. L’hillshade SRTM è disattivato nella preview GitHub perché l’endpoint AWS non invia header CORS. Le coordinate dei POI sono rimaste identiche; il caricamento della basemap dipende dalla rete. Il prototipo separato `carto-preview/` non esiste più: è diventato il progetto principale.
 
 ---
 

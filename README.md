@@ -21,10 +21,10 @@ The map now uses a **tiled, vector basemap** instead of a single local raster im
 
 - **CARTO Positron** vector style: `https://basemaps.cartocdn.com/gl/positron-gl-style/style.json`
 - **MapLibre GL JS 4.7.1**, vendored in `vendor/`.
-- **SRTM 30 m terrain** from AWS terrarium tiles, rendered as a MapLibre `hillshade` layer under water and roads.
+- The SRTM hillshade is **disabled in the GitHub Pages preview**: the public AWS terrarium endpoint does not send CORS headers, so MapLibre cannot read the DEM in the browser. For production, self-host a hillshade or use a CORS-enabled DEM provider.
 - CARTO’s own typography is used for **country and sea labels**. All other CARTO symbol layers (cities, roads, POIs) are hidden: the map keeps its own editorial labels for the story places. Four edge labels (Serbia, Romania, Greece, Turkey) and the Black Sea use the same CARTO font stack because country centroids fall outside the initial frame.
 
-The visual treatment in `map.js` applies the OBCT/CIJI palette to the vector style: paper background, one ochre for all roads with hierarchy by width only, one teal for rivers and reservoirs, grey dashed national borders with a paper halo, pale urban areas and buildings from zoom 13.
+The visual treatment in `map.js` applies the OBCT/CIJI palette to the vector style: paper background, one ochre for all roads with hierarchy by width only, one teal for rivers and reservoirs, grey dashed national borders with a paper halo, pale urban areas and buildings from zoom 13. CARTO’s country typography is retained, and all other symbol layers are hidden.
 
 ## What is in the map
 
@@ -63,6 +63,7 @@ Network access is required for the CARTO style/tiles and AWS terrain tiles. The 
 ## Notes
 
 - The map is now dependent on external CARTO tiles; the old local relief basemap and its rendering scripts have been removed.
-- The relief is a MapLibre hillshade, lighter and less custom than the previous hand-tuned local rendering.
+- The relief hillshade is disabled in the GitHub preview because of the AWS CORS restriction. The vector basemap is still crisp at every zoom.
 - The CARTO road network is more prominent than in the old custom basemap; the palette is adapted through MapLibre paint properties.
-- If CARTO is unavailable, the prototype has no local fallback. For production, decide whether to add one or host/self-style vector tiles.
+- If CARTO is unavailable, the map has no local fallback. For production, decide whether to add one or host/self-style vector tiles.
+- To restore relief on GitHub Pages, add a local transparent hillshade overlay or self-host DEM tiles; the direct AWS terrarium URL will keep failing CORS.

@@ -2,8 +2,6 @@
    Data and the popup HTML live in the inline script in index.html. */
 
 const CARTO_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
-const TERRAIN_URL = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
-
 // MapLibre order: west, south / east, north
 const ML_VIEW = [[21.35, 41.20], [28.05, 44.50]];
 const ML_MAX = [[18.00, 38.00], [31.00, 46.50]];
@@ -173,31 +171,6 @@ function addEdgeLabels() {
         'text-opacity': .92
       }
     });
-  }
-}
-
-function addTerrain() {
-  if (!map.getSource('terrain-dem')) {
-    map.addSource('terrain-dem', {
-      type: 'raster-dem',
-      tiles: [TERRAIN_URL],
-      encoding: 'terrarium',
-      tileSize: 256,
-      maxzoom: 13
-    });
-  }
-  if (!map.getLayer('terrain-hillshade')) {
-    map.addLayer({
-      id: 'terrain-hillshade',
-      type: 'hillshade',
-      source: 'terrain-dem',
-      paint: {
-        'hillshade-exaggeration': .55,
-        'hillshade-shadow-color': 'rgba(112, 98, 76, .38)',
-        'hillshade-highlight-color': 'rgba(255, 250, 240, .24)',
-        'hillshade-accent-color': 'rgba(160, 145, 120, .20)'
-      }
-    }, map.getLayer('waterway') ? 'waterway' : undefined);
   }
 }
 
@@ -406,7 +379,6 @@ applyLang();
 
 map.on('load', () => {
   applyEditorialStyle();
-  addTerrain();
   map.fitBounds(ML_VIEW, { padding: 0, duration: 0 });
   state.baseZoom = map.getZoom();
   map.setMinZoom(Math.max(4.8, state.baseZoom - 0.4));
