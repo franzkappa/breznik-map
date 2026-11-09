@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breznik and the water crisis · interactive map</title>
+<meta name="description" content="A single interactive map of the places behind Bulgaria’s drinking water crisis: Breznik, Krassava, Bardo Hill, Milin Kamak, Pernik, Pleven and Sofia.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="stylesheet" href="vendor/maplibre-gl.css">
+<style>
+  :root{
+    --paper:#f4eee2;
+    --paper-2:#fbf6ec;
+    --ink:#202726;
+    --ink-soft:#45505a;
+    --muted:#63717f;
+    --rule:#d6ccba;
+    --teal:#008aad;
+    --teal-deep:#006c88;
+    --orange:#f26b21;
+    --olive:#8f9422;
+    --navy:#171846;
+    --serif:Georgia,"Times New Roman",Times,serif;
+    --sans:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:var(--paper);overflow:hidden}
+  body{font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased}
+  #map{position:absolute;inset:0;background:var(--paper)}
+  .leaflet-container{font-family:var(--sans);background:var(--paper);outline:none}
+
+  /* ---------------------------------------------------------- legend panel */
+  .panel{
+    position:absolute;left:14px;top:14px;z-index:700;width:336px;max-width:calc(100% - 28px);
+    max-height:calc(100% - 28px);overflow:auto;
+    background:rgba(251,246,236,.93);border:1px solid rgba(32,39,38,.22);
+    box-shadow:0 10px 30px rgba(20,25,24,.14);backdrop-filter:blur(7px);
+    padding:16px 17px 13px;pointer-events:auto;
+  }
+  .eyebrow{font-size:8.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+  .eyebrow:before{content:"";width:18px;height:2px;background:var(--orange);display:block}
+  .panel h1{
+    font-family:var(--serif);font-weight:400;font-size:28px;line-height:.98;
+    letter-spacing:-.035em;margin:10px 0 8px;padding-right:36px;
+  }
+  .panel-toggle{
+    position:absolute;top:8px;right:8px;z-index:2;width:20px;height:20px;
+    border:1px solid rgba(32,39,38,.22);background:rgba(255,255,255,.42);
+    padding:0;font-size:14px;line-height:1;color:var(--muted);cursor:pointer;
+  }
+  .panel-toggle .chev{display:block;line-height:18px}
+  .panel.collapsed h1,
+  .panel.collapsed .deck,
+  .panel.collapsed .legend-title,
+  .panel.collapsed .legend-grid,
+  .panel.collapsed .panel-source{display:none}
+  .panel.collapsed{
+    width:auto;max-width:calc(100% - 28px);padding:11px 34px 11px 12px;
+  }
+  .panel.collapsed .eyebrow{white-space:nowrap;font-size:8px;letter-spacing:.14em}
+  .panel h1 em{font-style:italic;color:var(--teal-deep)}
+  .deck{font-size:11px;line-height:1.5;color:var(--ink-soft);margin:0 0 13px}
+  .legend-title{
+    font-size:8px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;
+    color:var(--muted);padding-top:10px;border-top:1px solid var(--rule);margin-bottom:7px;
+  }
+  .legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}
+  .legend-row{display:flex;align-items:center;gap:6px;font-size:9.2px;line-height:1.2;color:var(--ink-soft)}
+  .key-dot,.key-line,.key-area{flex:0 0 auto;display:inline-block}
+  .key-dot{width:9px;height:9px;border-radius:50%;background:var(--navy)}
+  .key-dot.water{background:var(--teal)}
+  .key-dot.mine{background:var(--olive);border-radius:1px;transform:rotate(45deg)}
+  .key-dot.justice{background:var(--orange)}
+  .key-dot.spring{background:#fff;border:2px solid var(--teal)}
+  .key-line{width:20px;height:0;border-top:2px solid #c9975c}
+  .key-line.river{border-top-color:#6ea6b0;border-top-width:1.5px}
+  .key-line.border{border-top:1px dashed #6f6a5c}
+  .key-area{width:12px;height:9px;background:#e3d8c2;border:1px solid #d0c3ab}
+  .panel-source{
+    margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);
+    font-size:8px;line-height:1.4;color:var(--muted);
+  }
+
+
+  /* --------------------------------------------------------------- brands */
+  .brands{position:absolute;right:14px;top:14px;z-index:700;display:flex;gap:6px;align-items:stretch}
+  .brand{
+    display:flex;align-items:center;justify-content:center;text-decoration:none;
+    background:rgba(251,246,236,.95);border:1px solid rgba(32,39,38,.18);
+    box-shadow:0 2px 12px rgba(20,25,24,.10);padding:5px 8px;
+  }
+  .brand.obct img{height:27px;display:block}
+  .brand.ciji img{height:27px;display:block}
+
+  /* --------------------------------------------------------------- locator */
+  .locator{
+    position:absolute;right:14px;bottom:30px;z-index:700;width:246px;
+    background:rgba(251,246,236,.95);border:1px solid rgba(32,39,38,.22);
+    box-shadow:0 10px 30px rgba(20,25,24,.16);padding:5px;
+  }
+  .locator-map{position:relative;width:100%;aspect-ratio:900/829;overflow:hidden;cursor:crosshair;background:#cfe4e6}
+  .locator-map img{display:block;width:100%;height:100%;object-fit:fill}
+  .locator-rect{
+    position:absolute;z-index:1;border:1.6px solid var(--orange);background:rgba(242,107,33,.10);
+    pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.55);
+    transition:left .08s linear,top .08s linear,width .08s linear,height .08s linear;
+  }
+  .locator-dot{
+    position:absolute;z-index:2;width:6px;height:6px;border-radius:50%;background:var(--orange);
+    border:1.5px solid #fff;transform:translate(-50%,-50%);pointer-events:none;
+    box-shadow:0 1px 4px rgba(0,0,0,.3);
+  }
+  .leaflet-popup-pane{z-index:900}
+
+
+  /* ------------------------------------------------------------ map credits */
+  .attrib{
+    position:absolute;left:50%;bottom:0;transform:translateX(-50%);z-index:600;
+    font-size:8px;color:#5f665f;background:linear-gradient(to top,rgba(244,238,226,.92),rgba(244,238,226,.55),transparent);
+    padding:2px 8px 4px;white-space:nowrap;pointer-events:none;
+  }
+  .attrib a{pointer-events:auto;color:inherit;text-decoration:none;border-bottom:1px solid rgba(95,102,95,.35)}
+  .leaflet-control-scale-line{
+    background:rgba(251,246,236,.82)!important;border-color:rgba(32,39,38,.45)!important;
+    color:#45505a!important;font-size:8px!important;line-height:1.2!important;
+    padding:1px 4px!important;box-shadow:none!important;
+  }
+  .leaflet-bottom.leaflet-left{margin-bottom:5px}
+  .leaflet-control-zoom{border:0!important;box-shadow:0 2px 10px rgba(20,25,24,.12)!important;margin-top:70px!important;margin-right:14px!important}
+  .leaflet-control-zoom a{
+    background:rgba(251,246,236,.96)!important;color:var(--ink)!important;
+    border:1px solid rgba(32,39,38,.18)!important;border-bottom:0!important;
+    width:28px!important;height:28px!important;line-height:26px!important;
+    font-size:17px!important;font-weight:400!important;border-radius:0!important;
+  }
+  .leaflet-control-zoom a:last-child{border-bottom:1px solid rgba(32,39,38,.18)!important}
+  .leaflet-control-zoom a:hover{background:#fff!important}
+  .leaflet-control-attribution{display:none!important}
+
+  /* --------------------------------------------------------------- markers */
+  .pin-wrap{background:none;border:0}
+  .pin{
+    width:var(--s);height:var(--s);border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:var(--navy);border:2px solid #fff;box-shadow:0 1px 5px rgba(20,25,24,.42);
+    transition:transform .16s ease;position:relative;
+  }
+  .pin svg{width:58%;height:58%;display:block}
+  .pin.water{background:var(--teal)}
+  .pin.mine{background:var(--olive);border-radius:2px;transform:rotate(45deg)}
+  .pin.mine svg{transform:rotate(-45deg)}
+  .pin.justice{background:var(--orange)}
+  .pin.spring{background:#fff;border-color:var(--teal);border-width:2px}
+  .pin.spring .inner{width:38%;height:38%;border-radius:50%;background:var(--teal)}
+  .pin.town{background:var(--navy)}
+  .pin-wrap:hover .pin{transform:scale(1.22)}
+  .pin-wrap:hover .pin.mine{transform:scale(1.18) rotate(45deg)}
+  .leaflet-tooltip.place-tip{
+    background:none;border:0;box-shadow:none;padding:0;white-space:nowrap;
+    color:var(--ink);font-family:var(--sans);text-shadow:0 0 3px var(--paper),0 0 7px var(--paper);
+  }
+  .leaflet-tooltip.place-tip:before{display:none}
+  .pt-name{display:block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.15}
+
+  .place-tip.major .pt-name{font-size:10.5px}
+  .place-tip.water .pt-name,.place-tip.spring .pt-name{color:var(--teal-deep);letter-spacing:.08em}
+  .place-tip.mine .pt-name{color:#6d7116;letter-spacing:.08em}
+  .place-tip.feature .pt-name{font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;font-size:10.5px;letter-spacing:.02em;color:#5c5941}
+  .leaflet-tooltip.zoom-label{opacity:0!important;transition:opacity .2s}
+  body.zoom-labels .leaflet-tooltip.zoom-label{opacity:1!important}
+
+  /* ------------------------------------------------------------ map credits */
+  .attrib{
+    position:absolute;left:50%;bottom:0;transform:translateX(-50%);z-index:600;
+    font-size:8px;color:#5f665f;background:linear-gradient(to top,rgba(244,238,226,.92),rgba(244,238,226,.55),transparent);
+    padding:2px 8px 4px;white-space:nowrap;pointer-events:none;
+  }
+  .attrib a{pointer-events:auto;color:inherit;text-decoration:none;border-bottom:1px solid rgba(95,102,95,.35)}
+  .leaflet-control-scale-line{
+    background:rgba(251,246,236,.82)!important;border-color:rgba(32,39,38,.45)!important;
+    color:#45505a!important;font-size:8px!important;line-height:1.2!important;
+    padding:1px 4px!important;box-shadow:none!important;
+  }
+  .leaflet-bottom.leaflet-left{margin-bottom:5px}
+  .leaflet-control-zoom{border:0!important;box-shadow:0 2px 10px rgba(20,25,24,.12)!important;margin-top:70px!important;margin-right:14px!important}
+  .leaflet-control-zoom a{
+    background:rgba(251,246,236,.96)!important;color:var(--ink)!important;
+    border:1px solid rgba(32,39,38,.18)!important;border-bottom:0!important;
+    width:28px!important;height:28px!important;line-height:26px!important;
+    font-size:17px!important;font-weight:400!important;border-radius:0!important;
+  }
+  .leaflet-control-zoom a:last-child{border-bottom:1px solid rgba(32,39,38,.18)!important}
+  .leaflet-control-zoom a:hover{background:#fff!important}
+  .leaflet-control-attribution{display:none!important}
+
+  /* --------------------------------------------------------------- markers */
+  .pin-wrap{background:none;border:0}
+  .pin{
+    width:var(--s);height:var(--s);border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:var(--navy);border:2px solid #fff;box-shadow:0 1px 5px rgba(20,25,24,.42);
+    transition:transform .16s ease;position:relative;
+  }
+  .pin svg{width:58%;height:58%;display:block}
+  .pin.water{background:var(--teal)}
+  .pin.mine{background:var(--olive);border-radius:2px;transform:rotate(45deg)}
+  .pin.mine svg{transform:rotate(-45deg)}
+  .pin.justice{background:var(--orange)}
+  .pin.spring{background:#fff;border-color:var(--teal);border-width:2px}
+  .pin.spring .inner{width:38%;height:38%;border-radius:50%;background:var(--teal)}
+  .pin.town{background:var(--navy)}
+  .pin-wrap:hover .pin{transform:scale(1.22)}
+  .pin-wrap:hover .pin.mine{transform:scale(1.18) rotate(45deg)}
+  .leaflet-tooltip.place-tip{
+    background:none;border:0;box-shadow:none;padding:0;white-space:nowrap;
+    color:var(--ink);font-family:var(--sans);text-shadow:0 0 3px var(--paper),0 0 7px var(--paper);
+  }
+  .leaflet-tooltip.place-tip:before{display:none}
+  .pt-name{display:block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.15}
+
+  .place-tip.major .pt-name{font-size:10.5px}
+  .place-tip.water .pt-name,.place-tip.spring .pt-name{color:var(--teal-deep);letter-spacing:.08em}
+  .place-tip.mine .pt-name{color:#6d7116;letter-spacing:.08em}
+  .place-tip.feature .pt-name{font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;font-size:10.5px;letter-spacing:.02em;color:#5c5941}
+  .leaflet-tooltip.zoom-label{opacity:0!important;transition:opacity .2s}
+  body.zoom-labels .leaflet-tooltip.zoom-label{opacity:1!important}
+
+  .map-text{
+    position:absolute;transform:translate(-50%,-50%);white-space:nowrap;pointer-events:none;
+    font-family:var(--sans);color:rgba(69,80,90,.48);text-shadow:0 0 3px var(--paper);
+  }
+  .map-text.country{
+    font-family:var(--serif);font-size:22px;letter-spacing:.34em;text-transform:uppercase;
+    color:rgba(32,39,38,.18);
+  }
+  .map-text.neighbour{
+    font-family:var(--serif);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:rgba(69,80,90,.42);
+  }
+  .map-text.sea{
+    font-family:var(--serif);font-style:italic;font-size:11px;letter-spacing:.15em;
+    text-transform:uppercase;color:rgba(76,125,135,.72);
+  }
+
+  /* ---------------------------------------------------------------- popups */
+  .story-popup .leaflet-popup-content-wrapper{
+    background:var(--paper-2);border-radius:0;box-shadow:0 20px 50px rgba(20,25,24,.28);
+    border:1px solid rgba(32,39,38,.18);
+  }
+  .story-popup .leaflet-popup-content{margin:0;width:298px!important}
+  .story-popup .leaflet-popup-tip{background:var(--paper-2);box-shadow:none}
+  .story-popup a.leaflet-popup-close-button{color:var(--muted);font-size:20px;padding:6px 8px 0 0;width:24px;height:24px}
+  .popup{padding:15px 17px 16px;border-top:4px solid var(--accent)}
+  .p-kicker{font-size:8px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+  .popup h3{font-family:var(--serif);font-size:24px;line-height:1.02;letter-spacing:-.025em;margin:0 0 6px;color:var(--ink)}
+  .p-stat{font-family:var(--serif);font-size:19px;line-height:1.1;color:var(--accent);margin:0 0 8px;font-style:italic}
+  .popup p{margin:0;font-size:11.8px;line-height:1.5;color:var(--ink-soft)}
+  .popup .p-note{
+    margin-top:9px;padding-top:8px;border-top:1px solid var(--rule);
+    font-size:8.4px;line-height:1.4;color:var(--muted);
+  }
+
+  .loader{
+    position:absolute;inset:0;z-index:900;background:var(--paper);display:flex;
+    align-items:center;justify-content:center;font-size:9px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--muted);
+  }
+  .loader.hidden{display:none}
+  .loader .bar{position:absolute;width:60px;height:2px;background:var(--teal);animation:load 1s ease-in-out infinite}
+  @keyframes load{0%{transform:translateX(-60px)}100%{transform:translateX(60px)}}
+
+  @media(max-width:760px){
+    .panel{width:268px;padding:12px 13px 10px}
+    .panel h1{font-size:23px}
+    .deck{font-size:10px}
+    .legend-grid{grid-template-columns:1fr 1fr}
+    .brand.obct img{height:21px}
+    .brand.ciji img{height:19px}
+    .brands{gap:4px}
+    .locator{width:190px;bottom:25px;right:9px}
+    .attrib{font-size:7px;max-width:70%;white-space:normal;text-align:center}
+    .leaflet-control-zoom{margin-top:60px!important;margin-right:9px!important}
+  }
+  @media(max-width:520px){
+    .panel{width:234px;left:8px;top:8px}
+    .panel h1{font-size:21px}
+    .legend-grid{grid-template-columns:1fr 1fr}
+    .deck{font-size:9.5px;line-height:1.4}
+    .brands{right:auto;left:8px;top:auto;bottom:9px;flex-direction:column;align-items:flex-start;gap:4px}
+    .brand.obct img{height:17px}
+    .brand.ciji img{height:16px}
+    .brand{padding:4px 5px}
+    .locator{width:160px}
+    .attrib{
+      display:block;left:68px;right:170px;bottom:1px;transform:none;
+      font-size:6.5px;line-height:1.25;max-width:none;white-space:normal;text-align:center;padding:0;
+    }
+    .leaflet-control-scale{display:none}
+  }
+
+  /* ---------------------------------------------------------- MapLibre */
+  .maplibregl-map{font-family:var(--sans);background:var(--paper);outline:none}
+  .maplibregl-canvas{outline:none}
+  .maplibregl-ctrl-top-right{top:70px;right:14px}
+  .maplibregl-ctrl-group{
+    background:rgba(251,246,236,.96);border:1px solid rgba(32,39,38,.18);
+    border-radius:0;box-shadow:0 2px 10px rgba(20,25,24,.12);
+  }
+  .maplibregl-ctrl-group button{width:28px;height:28px;background:transparent}
+  .maplibregl-ctrl-group button+button{border-top:1px solid rgba(32,39,38,.14)}
+  .maplibregl-ctrl-group button:hover{background:rgba(255,255,255,.65)}
+  .maplibregl-ctrl-scale{
+    background:rgba(251,246,236,.82)!important;border-color:rgba(32,39,38,.45)!important;
+    color:#45505a!important;font-size:8px!important;line-height:1.2!important;
+    padding:1px 4px!important;box-shadow:none!important;
+  }
+  .maplibregl-ctrl-bottom-left{margin-bottom:5px}
+  .maplibregl-popup{z-index:900}
+  .maplibregl-popup-content{
+    width:298px;background:var(--paper-2);padding:0;border-radius:0;
+    border:1px solid rgba(32,39,38,.18);box-shadow:0 20px 50px rgba(20,25,24,.28);
+  }
+  .maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--paper-2)}
+  .maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--paper-2)}
+  .maplibregl-popup-anchor-left .maplibregl-popup-tip{border-right-color:var(--paper-2)}
+  .maplibregl-popup-anchor-right .maplibregl-popup-tip{border-left-color:var(--paper-2)}
+  .maplibregl-popup-close-button{
+    color:var(--muted);font-size:20px;line-height:1;padding:0 4px;width:24px;height:24px;top:6px;right:6px;
+  }
+  .maplibregl-popup-close-button:hover{background:transparent;color:var(--ink)}
+  .maplibregl-marker{background:none}
+  .pin-wrap{background:none;border:0;padding:0;cursor:pointer;line-height:0}
+  .place-label-wrap{pointer-events:none;white-space:nowrap;text-shadow:0 0 3px var(--paper),0 0 7px var(--paper)}
+  .place-label{
+    display:block;font-family:var(--sans);font-size:9px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;line-height:1.15;color:var(--ink);
+  }
+  .place-label.major{font-size:10.5px}
+  .place-label.water,.place-label.spring{color:var(--teal-deep);letter-spacing:.08em}
+  .place-label.mine{color:#6d7116;letter-spacing:.08em}
+  .place-label.feature{
+    font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;
+    font-size:10.5px;letter-spacing:.02em;color:#5c5941;
+  }
+  .place-label-wrap.zoom-label{display:none}
+  body.zoom-labels .place-label-wrap.zoom-label{display:block}
+
+</style>
+</head>
+<body>
+<div id="map" aria-label="Interactive map of Breznik and Bulgaria’s water crisis"></div>
+
+<aside class="panel" aria-label="Map legend">
+  <button class="panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-label="Toggle legend"><span class="chev">−</span></button>
+  <div class="eyebrow" data-i18n="eyebrow">Bulgaria • Water and democracy</div>
+  <h1 data-i18n-html="title">Breznik and<br><em>the water crisis</em></h1>
+  <p class="deck" data-i18n="deck">A map of the places named in the investigation: the town, its reservoir, the mine on Bardo Hill, and the wider geography of Bulgaria’s water crisis.</p>
+  <div class="legend-title" data-i18n="legendTitle">Key</div>
+  <div class="legend-grid">
+    <div class="legend-row"><span class="key-dot"></span><span data-i18n="kTown">Town</span></div>
+    <div class="legend-row"><span class="key-dot water"></span><span data-i18n="kWater">Water</span></div>
+    <div class="legend-row"><span class="key-dot mine"></span><span data-i18n="kMine">Mine</span></div>
+    <div class="legend-row"><span class="key-dot justice"></span><span data-i18n="kJustice">Justice</span></div>
+    <div class="legend-row"><span class="key-line"></span><span data-i18n="kRoad">Roads</span></div>
+    <div class="legend-row"><span class="key-line river"></span><span data-i18n="kRiver">Rivers</span></div>
+    <div class="legend-row"><span class="key-line border"></span><span data-i18n="kBorder">Borders</span></div>
+    <div class="legend-row"><span class="key-area"></span><span data-i18n="kUrban">Urban areas</span></div>
+  </div>
+  <div class="panel-source" data-i18n="source">Basemap: © CARTO · © OpenStreetMap contributors · Relief: SRTM/AWS · Locator: Natural Earth</div>
+</aside>
+
+<div class="brands">
+  <a class="brand obct" href="https://www.balcanicaucaso.org/" target="_blank" rel="noopener" aria-label="Osservatorio Balcani e Caucaso Transeuropa">
+    <img src="assets/logos/obct.png" alt="Osservatorio Balcani e Caucaso Transeuropa">
+  </a>
+  <a class="brand ciji" href="https://www.ciji.info/" target="_blank" rel="noopener" aria-label="CIJI — Collaborative and Investigative Journalism Initiative">
+    <img src="assets/logos/ciji-navy.png" alt="CIJI — Collaborative and Investigative Journalism Initiative">
+  </a>
+</div>
+
+<div class="locator" aria-label="Locator map">
+  <div class="locator-map" id="locator-map">
+    <img src="assets/locator.webp" alt="Locator map of Bulgaria in the Balkans">
+    <span class="locator-dot" id="locator-dot"></span>
+    <span class="locator-rect" id="locator-rect"></span>
+  </div>
+</div>
+
+<div class="attrib" data-i18n-html="attrib">© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors · SRTM/AWS Terrain Tiles</div>
+<div class="loader" id="loader"><span data-i18n="loading">Loading map</span><span class="bar"></span></div>
+
+
+<script>
+const IMAGE_BOUNDS = [[40.0, 20.0], [46.0, 30.0]];
+const VIEW_BOUNDS = [[41.20, 21.35], [44.50, 28.05]];
+const LOC_BOUNDS = [[38.0, 18.0], [46.5, 30.5]];
+
+const COLORS = { town:'#171846', water:'#008aad', mine:'#8f9422', justice:'#f26b21', spring:'#008aad' };
+const GLYPHS = {
+  water:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7s6.2 7.2 6.2 11.4a6.2 6.2 0 1 1-12.4 0C5.8 9.9 12 2.7 12 2.7z" fill="#fff"/></svg>',
+  justice:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="#fff"/></svg>',
+  spring:'<span class="inner"></span>',
+  mine:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l5.2 7-5.2 7-5.2-7z" fill="#fff"/></svg>',
+  town:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.4" fill="#fff"/></svg>'
+};
+
+const PLACES = [
+  {
+    id:'breznik', cat:'town', coords:[42.7417,22.8981], size:21, dir:'left', off:[-12,-4], labelClass:'major',
+    label:{ en:{name:'Breznik',sub:'5,426 residents'}, it:{name:'Breznik',sub:'5.426 abitanti'} },
+    kicker:{en:'The town at the centre',it:'La città al centro'}, title:{en:'Breznik',it:'Breznik'},
+    stat:{en:'5,426 residents',it:'5.426 abitanti'},
+    body:{
+      en:'A small town 30 km west of Sofia, among wooded hills below Bardo Hill. On 18 November 2024 the Krassava reservoir fell too low and rationing began; it lasted 16 months, until April 2026. In summer 2025, manganese, arsenic and microbiological contamination made tap water unfit for human consumption. Volunteers delivered 13 tonnes of drinking water to the elderly and families with children.',
+      it:'Una piccola città a 30 km a ovest di Sofia, tra colline boscose sotto il colle Bardo. Il 18 novembre 2024 il bacino di Krassava scese troppo e iniziò il razionamento, durato 16 mesi fino all’aprile 2026. Nell’estate 2025 manganese, arsenico e contaminazione microbiologica hanno reso l’acqua del rubinetto non potabile. I volontari hanno consegnato 13 tonnellate di acqua potabile ad anziani e famiglie con bambini.'
+    },
+    note:{
+      en:'<strong>Around Breznik:</strong> Bardo Hill (929 m), the Milin Kamak gold-silver deposit and its planned 47.75 ha of mine and processing facilities, the Konska River — dry every summer — and the Bardo spring, where arsenic has been detected.',
+      it:'<strong>Intorno a Breznik:</strong> il colle Bardo (929 m), il giacimento di Milin Kamak e i 47,75 ettari previsti per miniera e impianti, il fiume Konska — asciutto ogni estate — e la sorgente del Bardo, dove è stato rilevato arsenico.'
+    }
+  },
+  {
+    id:'krassava', cat:'water', coords:[42.7870,22.8610], size:16, dir:'top', off:[0,-10], zoomLabel:true,
+    label:{ en:{name:'Krassava reservoir',sub:'Breznik’s main supply'}, it:{name:'Bacino di Krassava',sub:'La fonte principale di Breznik'} },
+    kicker:{en:'Breznik’s water source',it:'La fonte idrica di Breznik'}, title:{en:'Krassava reservoir',it:'Bacino di Krassava'},
+    stat:{en:'Critical low',it:'Livello critico'},
+    body:{
+      en:'The reservoir that supplies Breznik. As its level dropped, restrictions tightened. In summer 2025 the available water showed excessive concentrations of manganese and arsenic, along with microbiological contamination. For months the town depended on bottled water.',
+      it:'Il bacino che rifornisce Breznik. Con il calo del livello, le restrizioni si sono inasprite. Nell’estate 2025 l’acqua disponibile ha mostrato concentrazioni eccessive di manganese e arsenico, insieme a contaminazione microbiologica. Per mesi la città ha dipeso dall’acqua in bottiglia.'
+    }
+  },
+  {
+    id:'bardo', cat:'town', coords:[42.7292,22.9136], size:16, dir:'left', off:[-13,5], labelClass:'feature', detail:true,
+    label:{ en:{name:'Bardo Hill · 929 m',sub:''}, it:{name:'Colle Bardo · 929 m',sub:''} },
+    kicker:{en:'The hill overlooking the town',it:'Il colle che sovrasta la città'}, title:{en:'Bardo Hill',it:'Colle Bardo'},
+    stat:{en:'929 m',it:'929 m'},
+    body:{
+      en:'A wooded ridge south of Breznik; its highest point, St Nikola, reaches 929 m. On its southern flank lies the Milin Kamak gold-silver deposit. The article reports that arsenic has been detected in the Bardo mineral spring.',
+      it:'Una dorsale boscosa a sud di Breznik; la cima più alta, St Nikola, raggiunge i 929 m. Sul versante meridionale si trova il giacimento di Milin Kamak. L’articolo riferisce che è stato rilevato arsenico nella sorgente minerale del Bardo.'
+    }
+  },
+  {
+    id:'milin', cat:'mine', coords:[42.7247,22.9267], size:16, dir:'right', off:[14,4], detail:true,
+    label:{ en:{name:'Milin Kamak',sub:'Gold-silver deposit · 47.75 ha'}, it:{name:'Milin Kamak',sub:'Giacimento · 47,75 ha'} },
+    kicker:{en:'The mine on the other side',it:'La miniera dall’altro lato'}, title:{en:'Milin Kamak',it:'Milin Kamak'},
+    stat:{en:'47.75 ha planned',it:'47,75 ha previsti'},
+    body:{
+      en:'A gold-silver deposit held by Breznik Minerals, a subsidiary of the Asarel-Medet group. The concession covers nearly 220 hectares; the mine and processing plant are planned over 47.75 hectares. Mining had not officially begun as of autumn 2026. In summer 2026 the company proposed halving the tailings pond.',
+      it:'Un giacimento di Breznik Minerals, controllata del gruppo Asarel-Medet. La concessione copre quasi 220 ettari; la miniera e l’impianto di lavorazione sono previsti su 47,75 ettari. Nell’autunno 2026 l’attività non era ancora ufficialmente iniziata. Nell’estate 2026 l’azienda ha proposto di dimezzare il bacino dei residui.'
+    }
+  },
+  {
+    id:'konska', cat:'water', coords:[42.6653,22.9180], size:15, dir:'right', off:[10,2], zoomLabel:true,
+    label:{ en:{name:'Konska River',sub:'Dry every summer'}, it:{name:'Fiume Konska',sub:'Asciutto ogni estate'} },
+    kicker:{en:'The river that disappears',it:'Il fiume che scompare'}, title:{en:'Konska River',it:'Fiume Konska'},
+    stat:{en:'Dry every summer',it:'Asciutto ogni estate'},
+    body:{
+      en:'The only substantial river in this water-poor region, residents say. It dries up each summer, leaving the Krassava reservoir as the main source for drinking water and everything else. The mining facilities already draw water, raising fears of contamination from wastewater.',
+      it:'L’unico fiume davvero consistente in questa regione povera d’acqua, secondo gli abitanti. Si prosciuga ogni estate, lasciando il bacino di Krassava come fonte principale. Gli impianti minerari già prelevano acqua, alimentando il timore di contaminazione.'
+    }
+  },
+  {
+    id:'spring', cat:'spring', coords:[42.7313343,22.9028954], size:14, dir:'right', off:[10,-10], detail:true,
+    label:{ en:{name:'Bardo spring',sub:''}, it:{name:'Sorgente del Bardo',sub:''} },
+    kicker:{en:'Arsenic in the spring',it:'Arsenico nella sorgente'}, title:{en:'Bardo mineral spring',it:'Sorgente minerale del Bardo'},
+    stat:{en:'Arsenic detected',it:'Arsenico rilevato'},
+    body:{
+      en:'The iron-rich spring in the Bardo locality, known locally as Zhelyaznata voda (“iron water”). The article reports that arsenic has also been detected here, close to the planned mine site.',
+      it:'La sorgente ferruginosa nella località del Bardo, nota come Zhelyaznata voda (“acqua di ferro”). L’articolo riferisce che anche qui è stato rilevato arsenico, vicino al sito minerario previsto.'
+    }
+  },
+  {
+    id:'sofia', cat:'justice', coords:[42.6977,23.3219], size:19, dir:'right', off:[12,1], labelClass:'major',
+    label:{ en:{name:'Sofia',sub:'The capital · 30 km east'}, it:{name:'Sofia',sub:'La capitale · 30 km a est'} },
+    kicker:{en:'The capital',it:'La capitale'}, title:{en:'Sofia',it:'Sofia'},
+    stat:{en:'30 km east of Breznik',it:'30 km a est di Breznik'},
+    body:{
+      en:'Bulgaria’s capital, less than an hour from Breznik. It is where local water crises become national politics: protests over Pernik, meetings between FESLT and other initiatives, and the Administrative Court where the group challenged Breznik Minerals on 22 October. The hearing was adjourned; FESLT says it will return.',
+      it:'La capitale bulgara, a meno di un’ora da Breznik. Qui le crisi idriche locali diventano politica nazionale: le proteste per Pernik, gli incontri tra FESLT e altre iniziative, e il tribunale amministrativo dove il gruppo ha contestato Breznik Minerals il 22 ottobre. L’udienza è stata rinviata; FESLT tornerà.'
+    }
+  },
+  {
+    id:'pernik', cat:'town', coords:[42.6050,23.0350], size:18, dir:'left', off:[-12,2],
+    label:{ en:{name:'Pernik',sub:'The 2019 crisis'}, it:{name:'Pernik',sub:'La crisi del 2019'} },
+    kicker:{en:'The 2019 crisis',it:'La crisi del 2019'}, title:{en:'Pernik',it:'Pernik'},
+    stat:{en:'~100,000 people affected',it:'~100.000 persone coinvolte'},
+    body:{
+      en:'In November 2019 the Studena reservoir, the city’s main supply, fell to dangerously low levels after a prolonged drought. Rationing limited water to a few hours a day for nearly 100,000 people. Ageing pipes and losses above 70% made things worse. Permits for industrial withdrawals by the Stomana steelworks triggered a national scandal; environment minister Neno Dimov was charged with deliberate mismanagement in January 2020.',
+      it:'Nel novembre 2019 il bacino di Studena, la principale fonte della città, scese a livelli pericolosamente bassi dopo una siccità prolungata. Il razionamento ha limitato l’acqua a poche ore al giorno per quasi 100.000 persone. Tubature vecchie e perdite superiori al 70% hanno peggiorato la situazione. I permessi di prelievo industriale per l’acciaieria Stomana hanno scatenato uno scandalo nazionale; il ministro Neno Dimov è stato accusato di cattiva gestione dolosa nel gennaio 2020.'
+    }
+  },
+  {
+    id:'studena', cat:'water', coords:[42.5309,23.1497], size:15, dir:'right', off:[10,3], zoomLabel:true,
+    label:{ en:{name:'Studena reservoir',sub:'Pernik’s supply'}, it:{name:'Bacino di Studena',sub:'La fonte di Pernik'} },
+    kicker:{en:'Pernik’s reservoir',it:'Il bacino di Pernik'}, title:{en:'Studena reservoir',it:'Bacino di Studena'},
+    stat:{en:'Drought-exposed',it:'Esposto alla siccità'},
+    body:{
+      en:'The main water supply for Pernik. After a prolonged drought its level fell to a critical minimum in 2019, exposing a system weakened by ageing infrastructure, underinvestment and management failures.',
+      it:'La principale fonte idrica di Pernik. Dopo una siccità prolungata il livello è sceso a un minimo critico nel 2019, mettendo a nudo un sistema indebolito da infrastrutture vecchie, sottoinvestimenti e errori di gestione.'
+    }
+  },
+  {
+    id:'stomana', cat:'mine', coords:[42.5932,23.1049], size:13, dir:'bottom', off:[0,9], zoomLabel:true,
+    label:{ en:{name:'Stomana steelworks',sub:''}, it:{name:'Acciaieria Stomana',sub:''} },
+    kicker:{en:'Industry and oversight',it:'Industria e controllo'}, title:{en:'Stomana Industry',it:'Stomana Industry'},
+    stat:{en:'Permits despite warnings',it:'Permessi nonostante gli avvertimenti'},
+    body:{
+      en:'The Pernik steelworks at the centre of the 2019–20 water scandal. Permits for industrial water withdrawals were granted despite prior warnings, even as the city rationed drinking water. The case became a symbol of the capture of public oversight.',
+      it:'L’acciaieria di Pernik al centro dello scandalo idrico del 2019-20. I permessi di prelievo industriale sono stati concessi nonostante gli avvertimenti, mentre la città razionava l’acqua potabile. Il caso è diventato un simbolo della cattura del controllo pubblico.'
+    }
+  },
+  {
+    id:'pleven', cat:'town', coords:[43.4170,24.6160], size:18, dir:'right', off:[12,0], labelClass:'major',
+    label:{ en:{name:'Pleven',sub:'>100,000 affected'}, it:{name:'Pleven',sub:'>100.000 coinvolti'} },
+    kicker:{en:'The northern crisis',it:'La crisi del nord'}, title:{en:'Pleven',it:'Pleven'},
+    stat:{en:'>100,000 people affected',it:'>100.000 persone coinvolte'},
+    body:{
+      en:'The Pleven region suffered water restrictions in the summers of 2024 and 2025, affecting more than 100,000 people. In autumn 2025 the authorities estimated that more than 85% of water was being lost through leaks.',
+      it:'La regione di Pleven ha subito restrizioni idriche nelle estati 2024 e 2025, con oltre 100.000 persone coinvolte. Nell’autunno 2025 le autorità hanno stimato che più dell’85% dell’acqua si perdeva attraverso le falle.'
+    }
+  },
+  {
+    id:'gorni', cat:'water', coords:[43.3616,24.3004], size:15, dir:'left', off:[-10,1], zoomLabel:true,
+    label:{ en:{name:'Gorni Dabnik reservoir',sub:'A promised treatment plant'}, it:{name:'Bacino di Gorni Dabnik',sub:'Un impianto promesso'} },
+    kicker:{en:'A promised fix',it:'Una soluzione promessa'}, title:{en:'Gorni Dabnik reservoir',it:'Bacino di Gorni Dabnik'},
+    stat:{en:'Treatment plant proposed',it:'Impianto proposto'},
+    body:{
+      en:'A reservoir near Pleven. In 2026 the government of Rumen Radev announced funds to renovate water intakes and pipelines, build treatment plants and drill new wells. The prime minister also raised the possibility of building a treatment plant at Gorni Dabnik.',
+      it:'Un bacino vicino a Pleven. Nel 2026 il governo di Rumen Radev ha annunciato fondi per rinnovare prese e condotte, costruire impianti di trattamento e scavare nuovi pozzi. Il premier ha anche prospettato un impianto di trattamento a Gorni Dabnik.'
+    }
+  },
+  {
+    id:'panagyurishte', cat:'mine', coords:[42.5000,24.1833], size:16, dir:'right', off:[11,0],
+    label:{ en:{name:'Panagyurishte',sub:'Asarel-Medet’s base'}, it:{name:'Panagyurishte',sub:'La base di Asarel-Medet'} },
+    kicker:{en:'The company’s home ground',it:'La casa della compagnia'}, title:{en:'Panagyurishte',it:'Panagyurishte'},
+    stat:{en:'Metals in the water',it:'Metalli nell’acqua'},
+    body:{
+      en:'The historic base of the Asarel-Medet group in central Bulgaria. Scientific studies and expert reports examined in court documented significant deterioration in several waterways around mining facilities, associated with metals. Nothing yet formally proves that the Breznik mine would have the same impact, but residents fear it.',
+      it:'La base storica del gruppo Asarel-Medet nella Bulgaria centrale. Studi scientifici e relazioni di esperti esaminate in tribunale hanno documentato un significativo degrado di diversi corsi d’acqua intorno agli impianti minerari, legato alla presenza di metalli. Nulla prova ancora formalmente che la miniera di Breznik avrebbe lo stesso impatto, ma gli abitanti lo temono.'
+    }
+  }
+];
+
+const I18N = {
+  en:{
+    eyebrow:'Bulgaria • Water and democracy',
+    title:'Breznik and<br><em>the water crisis</em>',
+    deck:'A map of the places named in the investigation: the town, its reservoir, the mine on Bardo Hill, and the wider geography of Bulgaria’s water crisis.',
+    legendTitle:'Key',
+    kTown:'Town', kWater:'Water', kMine:'Mine', kJustice:'Justice',
+    kRoad:'Roads', kRiver:'Rivers', kBorder:'Borders', kUrban:'Urban areas',
+    source:'Basemap: © CARTO · © OpenStreetMap contributors · Relief: SRTM/AWS · Locator: Natural Earth',
+    attrib:'© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors · SRTM/AWS Terrain Tiles',
+    loading:'Loading map'
+  }
+};
+
+const state = { lang:'en', baseZoom:0, open:null };
+const markers = [];
+
+function accent(cat){ return COLORS[cat] || COLORS.town; }
+function pinIcon(cat,size){
+  return L.divIcon({className:'pin-wrap',html:`<span class="pin ${cat}" style="--s:${size}px">${GLYPHS[cat]||''}</span>`,iconSize:[size,size],iconAnchor:[size/2,size/2]});
+}
+function labelHTML(p){
+  const l=p.label[state.lang]||p.label.en;
+  return `<span class="pt-name">${l.name}</span>`;
+}
+function popupHTML(p){
+  const t=k=>p[k]?(p[k][state.lang]||p[k].en):'';
+  return `<div class="popup" style="--accent:${accent(p.cat)}">
+    <div class="p-kicker">${t('kicker')}</div>
+    <h3>${t('title')}</h3>
+    <div class="p-stat">${t('stat')}</div>
+    <p>${t('body')}</p>
+    ${p.note ? `<div class="p-note">${p.note[state.lang] || p.note.en}</div>` : ''}
+  </div>`;
+}
+</script>
+<script src="vendor/maplibre-gl.js"></script>
+<script src="map.js"></script>
+</body>
+</html>
