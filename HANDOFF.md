@@ -8,8 +8,8 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 ## Stato attuale
 
 - Data: 2026-11-10.
-- Working tree: `index.html`, `map.js`, `tour.js`, `HANDOFF.md` nel commit del
-  task; `README.md` ha modifiche estranee al task, non committate.
+- Working tree: pulito; il lavoro della sessione è nei commit `da8d0d4` e
+  successivi.
 - Repo `franzkappa/breznik-map`, preview GitHub Pages con `robots.txt` noindex.
 - Locale: `python3 -m http.server 8000` → http://localhost:8000
 
@@ -27,20 +27,19 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 - **Sorgente del Bardo uniformata a Water**: `cat:'water'`, pin pieno teal
   invece del cerchio bianco; rimossi gli hook `spring` ormai morti.
 - Cache-bust: `map.js` `20261110-31`, `tour.js` `20261110-8`.
+- `README.md` allineato alla mappa: 12 pin, 12 tappe, soglie z11/z12, elenco
+  delle località e esempio del contatore.
 
 ## Prossimo task
 
 1. Versione italiana della UI (non solo le label dei luoghi).
    - Accettazione: testi di UI, legenda, tour e popup in italiano; switch o
      build separata; nessuna regressione desktop/mobile; `check.sh` verde.
-2. Allineare `README.md` ai 12 pin e alle soglie.
 
 ## Problemi aperti
 
 - UI solo in inglese: `I18N` ha il solo blocco `en` e `state.lang` è fisso;
   label e popup sono già bilingui in `PLACES`.
-- `README.md` descrive ancora «9 pin» e i POI secondari dentro il popup di
-  Breznik.
 - Fra z11 e z12 i POI secondari sono senza nome (pallini non etichettati):
   scelta voluta, non un bug.
 - Le soglie dipendono dalla larghezza fissa delle etichette: se cambiano i
@@ -61,7 +60,6 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 
 - `assets/*.js`, `assets/*.geojson` (generati dagli script); `vendor/`
   (MapLibre 4.7.1); attribuzioni CARTO/OSM/Esri/USGS/NASA.
-- `README.md`: modifiche estranee al task, non committarle qui.
 
 Vincoli:
 
