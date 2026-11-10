@@ -268,32 +268,64 @@
   @keyframes load{0%{transform:translateX(-60px)}100%{transform:translateX(60px)}}
 
   @media(max-width:760px){
-    .panel{width:268px;padding:12px 13px 10px}
-    .panel h1{font-size:23px}
-    .deck{font-size:10px}
-    .legend-grid{grid-template-columns:1fr 1fr}
-    .brand.obct img{height:21px}
-    .brand.ciji img{height:19px}
-    .brands{gap:4px}
-    .locator{width:190px;bottom:25px;right:9px}
-    .attrib{font-size:7px;max-width:70%;white-space:normal;text-align:center}
-    .leaflet-control-zoom{margin-top:60px!important;margin-right:9px!important}
+    .panel{
+      width:min(320px,calc(100vw - 16px));left:8px;top:8px;padding:14px 14px 11px;
+      max-height:calc(100% - 120px);
+    }
+    .panel h1{font-size:26px}
+    .deck{font-size:11.5px;line-height:1.45}
+    .legend-title{font-size:8.5px}
+    .legend-row{font-size:10.5px}
+    .panel-source{font-size:8.5px}
+    .panel-toggle{width:30px;height:30px;font-size:18px}
+    .panel.collapsed{padding:12px 40px 12px 13px}
+    .panel.collapsed .eyebrow{font-size:8.5px;letter-spacing:.14em}
+    .brand.obct img{height:22px}
+    .brand.ciji img{height:20px}
+    .brands{gap:5px;top:8px;right:8px}
+    .brand{padding:5px 6px}
+    .locator{width:168px;bottom:calc(86px + env(safe-area-inset-bottom,0px));right:8px}
+    .attrib{font-size:7.5px;max-width:62%;white-space:normal;text-align:center;bottom:env(safe-area-inset-bottom,0px)}
+    .maplibregl-ctrl-top-right{top:64px;right:8px}
+    .maplibregl-ctrl-group button{width:36px!important;height:36px!important}
+    .maplibregl-ctrl-group button svg{width:20px;height:20px}
   }
   @media(max-width:520px){
-    .panel{width:234px;left:8px;top:8px}
-    .panel h1{font-size:21px}
-    .legend-grid{grid-template-columns:1fr 1fr}
-    .deck{font-size:9.5px;line-height:1.4}
-    .brands{right:auto;left:8px;top:auto;bottom:9px;flex-direction:column;align-items:flex-start;gap:4px}
-    .brand.obct img{height:17px}
+    .panel{width:calc(100vw - 16px);max-width:310px;left:8px;top:8px;padding:13px 13px 10px}
+    .panel h1{font-size:24px}
+    .legend-grid{gap:5px 8px}
+    .legend-row{font-size:10px}
+    .deck{font-size:11px;line-height:1.42}
+    .panel-source{font-size:8px}
+    .panel.collapsed{width:auto;padding:11px 40px 11px 12px}
+    .panel.collapsed .eyebrow{font-size:8px;white-space:normal;line-height:1.25}
+    .brands{
+      left:8px;right:auto;top:auto;bottom:calc(82px + env(safe-area-inset-bottom,0px));
+      flex-direction:row;align-items:flex-start;gap:4px;
+    }
+    .brand.obct img{height:18px}
     .brand.ciji img{height:16px}
     .brand{padding:4px 5px}
-    .locator{width:160px}
+    .locator{width:142px;bottom:calc(86px + env(safe-area-inset-bottom,0px));right:8px}
     .attrib{
-      display:block;left:68px;right:170px;bottom:1px;transform:none;
-      font-size:6.5px;line-height:1.25;max-width:none;white-space:normal;text-align:center;padding:0;
+      display:block;left:8px;right:8px;bottom:env(safe-area-inset-bottom,0px);transform:none;
+      font-size:6.8px;line-height:1.2;max-width:none;white-space:normal;text-align:center;padding:0;
     }
-    .leaflet-control-scale{display:none}
+    .maplibregl-ctrl-scale{display:none}
+    .maplibregl-ctrl-top-right{top:60px;right:8px}
+    .tour-home{width:46px;padding:0}
+    .tour-home-label{display:none}
+    .popup{padding:14px 14px 15px}
+    .popup h3{font-size:22px}
+    .popup p{font-size:12px;line-height:1.48}
+    .maplibregl-popup-close-button{width:32px;height:32px;font-size:24px;padding:2px 6px}
+  }
+  @media(max-height:520px){
+    .locator{width:160px;bottom:calc(76px + env(safe-area-inset-bottom,0px));right:8px}
+    .panel{max-height:calc(100% - 96px)}
+    .panel.collapsed{padding-top:9px;padding-bottom:9px}
+    .tour{bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+    .attrib{bottom:env(safe-area-inset-bottom,0px)}
   }
 
   /* ---------------------------------------------------------- MapLibre */
@@ -315,8 +347,9 @@
   .maplibregl-ctrl-bottom-left{margin-bottom:5px}
   .maplibregl-popup{z-index:900}
   .maplibregl-popup-content{
-    width:298px;background:var(--paper-2);padding:0;border-radius:0;
+    width:min(298px,calc(100vw - 28px));background:var(--paper-2);padding:0;border-radius:0;
     border:1px solid rgba(32,39,38,.18);box-shadow:0 20px 50px rgba(20,25,24,.28);
+    max-height:calc(100vh - 96px);max-height:calc(100dvh - 96px);overflow-y:auto;
   }
   .maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--paper-2)}
   .maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--paper-2)}
@@ -345,43 +378,43 @@
 
   /* ------------------------------------------------------------ tour bar */
   .tour{
-    position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:750;
-    display:flex;align-items:stretch;
-    background:rgba(251,246,236,.96);border:1px solid rgba(32,39,38,.22);
-    box-shadow:0 10px 30px rgba(20,25,24,.16);backdrop-filter:blur(7px);
+    position:absolute;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:750;
+    display:flex;align-items:stretch;min-height:46px;
+    background:rgba(251,246,236,.985);border:1px solid rgba(32,39,38,.26);
+    border-top:3px solid var(--teal);
+    box-shadow:0 14px 36px rgba(20,25,24,.22),0 2px 7px rgba(20,25,24,.10);
+    backdrop-filter:blur(9px);
   }
   .tour-label{
-    display:flex;align-items:center;padding:0 10px;border-right:1px solid rgba(32,39,38,.16);
-    font-size:8px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--muted);
+    display:flex;align-items:center;padding:0 13px;border-right:1px solid rgba(32,39,38,.16);
+    font-size:9px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-soft);
   }
   .tour-btn{
-    width:36px;height:38px;padding:0;border:0;background:transparent;cursor:pointer;
+    width:46px;height:46px;padding:0;border:0;background:transparent;cursor:pointer;
     display:flex;align-items:center;justify-content:center;color:var(--ink);
   }
-  .tour-btn svg{width:15px;height:15px;display:block}
-  .tour-btn:hover:not(:disabled){background:rgba(255,255,255,.72)}
+  .tour-btn svg{width:17px;height:17px;display:block}
+  .tour-btn:hover:not(:disabled){background:rgba(255,255,255,.78)}
   .tour-btn:focus-visible{outline:2px solid var(--orange);outline-offset:-2px}
-  .tour-btn:disabled{color:rgba(99,113,127,.32);cursor:default}
+  .tour-btn:disabled{color:rgba(99,113,127,.30);cursor:default}
   .tour-count{
-    min-width:52px;display:flex;align-items:center;justify-content:center;
-    font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--ink-soft);
+    min-width:58px;display:flex;align-items:center;justify-content:center;
+    font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--ink-soft);
     border-left:1px solid rgba(32,39,38,.16);border-right:1px solid rgba(32,39,38,.16);
   }
   .tour-count b{font-weight:700;color:var(--ink)}
+  .tour-home{
+    width:auto;gap:7px;padding:0 13px;border-left:1px solid rgba(32,39,38,.16);
+    color:var(--teal-deep);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  }
+  .tour-home svg{width:16px;height:16px}
+  .tour-home:hover:not(:disabled){background:rgba(0,138,173,.08)}
+
   .sr-only{
     position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
     clip:rect(0,0,0,0);white-space:nowrap;border:0;
   }
   .pin-wrap.is-tour .pin{box-shadow:0 0 0 4px rgba(242,107,33,.34),0 1px 5px rgba(20,25,24,.42)}
-
-  @media(max-width:760px){
-    .tour{bottom:30px}
-    .locator{bottom:76px}
-  }
-  @media(max-width:520px){
-    .tour-label{display:none}
-    .locator{width:158px;bottom:74px;right:8px}
-  }
 
 </style>
 </head>
@@ -430,6 +463,10 @@
   <div class="tour-count" id="tour-count"><b>–</b>&nbsp;/&nbsp;<span id="tour-total">9</span></div>
   <button class="tour-btn" id="tour-next" type="button" aria-label="Next place">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 16.5 12 9 19.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
+  </button>
+  <button class="tour-btn tour-home" id="tour-overview" type="button" aria-label="Back to overview" title="Back to overview">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.4 12 5l8 6.4V20h-5.2v-5.1H9.2V20H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <span class="tour-home-label">Overview</span>
   </button>
 </div>
 <span class="sr-only" id="tour-live" aria-live="polite"></span>
@@ -582,6 +619,28 @@ const PLACES = [
   }
 ];
 
+// Country labels are placed at fixed points that sit inside the Natural Earth
+// polygons (checked with Shapely). They replace CARTO's country labels, whose
+// centroids for Greece and Turkey fall outside the frame and sometimes land on
+// the wrong side of a border.
+const COUNTRY_LABELS = [
+  { name:'Bulgaria', coords:[42.90,25.50], major:true },
+  { name:'Romania', coords:[44.35,25.20] },
+  { name:'Serbia', coords:[43.30,21.90] },
+  { name:'Kosovo', coords:[42.60,20.90] },
+  { name:'Montenegro', coords:[42.90,19.10] },
+  { name:'Albania', coords:[41.30,20.00] },
+  { name:'North Macedonia', coords:[41.60,21.70] },
+  { name:'Greece', coords:[41.30,24.40] },
+  { name:'Turkey', coords:[41.40,27.00] },
+  { name:'Bosnia and Herzegovina', coords:[44.20,18.40] },
+  { name:'Croatia', coords:[45.40,18.60] },
+  { name:'Hungary', coords:[46.40,20.20] },
+  { name:'Moldova', coords:[46.20,28.60] },
+  { name:'Ukraine', coords:[45.80,29.00] },
+  { name:'Black Sea', coords:[43.10,28.50], sea:true }
+];
+
 const I18N = {
   en:{
     eyebrow:'Bulgaria • Water and democracy',
@@ -619,10 +678,10 @@ function popupHTML(p){
 }
 </script>
 <script src="assets/bulgaria-highlight.js?v=20261110-3"></script>
-<script src="assets/borders.js?v=20261110-2"></script>
+<script src="assets/borders.js?v=20261110-6"></script>
 <script src="assets/place-labels.js?v=20261110-2"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script src="map.js?v=20261110-6"></script>
-<script src="tour.js?v=20261110-6"></script>
+<script src="map.js?v=20261110-12"></script>
+<script src="tour.js?v=20261110-7"></script>
 </body>
 </html>

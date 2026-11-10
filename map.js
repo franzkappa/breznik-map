@@ -4,7 +4,19 @@
 const CARTO_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 // MapLibre order: west, south / east, north
 const ML_VIEW = [[21.35, 41.20], [28.95, 44.50]];
-const ML_MAX = [[18.00, 38.00], [31.00, 46.50]];
+const ML_MAX = [[17.2, 35.5], [31.8, 49.0]];
+
+/* Keep the general view clear of the tour bar and the locator, especially on
+   phones. The same padding is used at load and by the Overview button. */
+function overviewPadding() {
+  if (window.innerWidth <= 520) {
+    return { top: 18, bottom: 104, left: 14, right: 14 };
+  }
+  if (window.innerWidth <= 760) {
+    return { top: 20, bottom: 96, left: 18, right: 18 };
+  }
+  return { top: 24, bottom: 76, left: 24, right: 24 };
+}
 
 const map = new maplibregl.Map({
   container: 'map',
@@ -103,36 +115,21 @@ function applyEditorialStyle() {
     setP(id, 'line-opacity', .16);
   });
 
-  // Keep CARTO's own typographic label layers only for countries and the sea.
-  // City, road and POI labels are replaced by the editorial labels on the map.
+  // CARTO's own country labels sit at country centroids and are hidden: for
+  // Greece and Turkey those centroids fall outside the frame, and the four
+  // edge labels used previously sometimes landed across a border. The custom
+  // country-label layer below uses points that are inside each polygon.
+  // City, road, POI and sea labels are also replaced by the editorial labels.
   map.getStyle().layers.forEach(layer => {
     if (layer.type !== 'symbol') return;
-    const keep = ['place_country_1', 'place_country_2', 'watername_sea'].includes(layer.id);
-    if (!keep) setL(layer.id, 'visibility', 'none');
+    setL(layer.id, 'visibility', 'none');
   });
-
-  ['place_country_1', 'place_country_2'].forEach(id => {
-    setL(id, 'text-size', ['interpolate', ['linear'], ['zoom'], 4, 10, 6, 13, 8, 16, 11, 20]);
-    setL(id, 'text-letter-spacing', .09);
-    setL(id, 'text-transform', 'uppercase');
-    setL(id, 'text-padding', 8);
-    setP(id, 'text-color', '#4f554c');
-    setP(id, 'text-halo-color', '#f4eee2');
-    setP(id, 'text-halo-width', 1.7);
-    setP(id, 'text-halo-blur', .2);
-    setP(id, 'text-opacity', .92);
-  });
-
-  setL('watername_sea', 'text-letter-spacing', .12);
-  setP('watername_sea', 'text-color', 'rgba(76, 125, 135, .9)');
-  setP('watername_sea', 'text-halo-color', '#cfe4e6');
-  setP('watername_sea', 'text-halo-width', 1.2);
 
   addCountryHighlight();
   addHillshade();
   addBorders();
   addPlaceLabels();
-  addEdgeLabels();
+  addCountryLabels();
 }
 
 /* A warm, slightly darker fill makes Bulgaria stand out from its neighbours
@@ -334,41 +331,47 @@ function addPlaceLabels() {
   }
 }
 
-/* CARTO's country labels sit at country centroids, so Romania, Serbia,
-   Greece and Turkey fall outside the initial frame. These four edge labels
-   use the same CARTO font stack and are hidden once zoomed in. */
-function addEdgeLabels() {
+/* Country labels are placed at points that sit inside each Natural Earth
+   polygon. This avoids the centroid problem (Greece and Turkey fall outside
+   the initial frame) and keeps every name on the correct side of a border at
+   every zoom and viewport size. CARTO's own country labels are hidden. */
+function addCountryLabels() {
+  if (typeof COUNTRY_LABELS === 'undefined') return;
   const data = {
     type: 'FeatureCollection',
-    features: [
-      { type: 'Feature', properties: { name: 'Romania' }, geometry: { type: 'Point', coordinates: [25.20, 44.45] } },
-      { type: 'Feature', properties: { name: 'Serbia' }, geometry: { type: 'Point', coordinates: [21.90, 43.30] } },
-      { type: 'Feature', properties: { name: 'Greece' }, geometry: { type: 'Point', coordinates: [22.70, 41.25] } },
-      { type: 'Feature', properties: { name: 'Turkey' }, geometry: { type: 'Point', coordinates: [26.20, 41.55] } },
-      { type: 'Feature', properties: { name: 'Black Sea' }, geometry: { type: 'Point', coordinates: [28.42, 43.05] } }
-    ]
+    features: COUNTRY_LABELS.map(label => ({
+      type: 'Feature',
+      properties: { name: label.name, major: !!label.major, sea: !!label.sea },
+      geometry: { type: 'Point', coordinates: [label.coords[1], label.coords[0]] }
+    }))
   };
 
-  if (!map.getSource('edge-country-labels')) {
-    map.addSource('edge-country-labels', { type: 'geojson', data });
+  if (!map.getSource('country-labels')) {
+    map.addSource('country-labels', { type: 'geojson', data });
   }
-  if (!map.getLayer('edge-country-labels')) {
+  if (!map.getLayer('country-labels')) {
     map.addLayer({
-      id: 'edge-country-labels',
+      id: 'country-labels',
       type: 'symbol',
-      source: 'edge-country-labels',
-      maxzoom: 8.2,
+      source: 'country-labels',
+      maxzoom: 8.6,
       layout: {
         'text-field': ['get', 'name'],
         'text-font': ['Montserrat SemiBold'],
-        'text-size': ['interpolate', ['linear'], ['zoom'], 5, 10, 6.7, 12, 8, 14],
-        'text-letter-spacing': .12,
+        'text-size': ['interpolate', ['linear'], ['zoom'],
+          5, ['case', ['get', 'major'], 13, 9.5],
+          6.7, ['case', ['get', 'major'], 16, 11.5],
+          8, ['case', ['get', 'major'], 18, 13.5]
+        ],
+        'text-letter-spacing': ['case', ['get', 'sea'], .14, .12],
         'text-transform': 'uppercase',
-        'text-padding': 6
+        'text-padding': 10,
+        'text-max-width': 10,
+        'symbol-sort-key': ['case', ['get', 'major'], 0, ['case', ['get', 'sea'], 2, 1]]
       },
       paint: {
-        'text-color': '#4f554c',
-        'text-halo-color': '#f4eee2',
+        'text-color': ['case', ['get', 'sea'], '#4c7d87', '#4f554c'],
+        'text-halo-color': ['case', ['get', 'sea'], '#cfe4e6', '#f4eee2'],
         'text-halo-width': 1.7,
         'text-halo-blur': .2,
         'text-opacity': .92
@@ -585,9 +588,9 @@ applyLang();
 
 map.on('load', () => {
   applyEditorialStyle();
-  map.fitBounds(ML_VIEW, { padding: 0, duration: 0 });
+  map.fitBounds(ML_VIEW, { padding: overviewPadding(), duration: 0 });
   state.baseZoom = map.getZoom();
-  map.setMinZoom(Math.max(4.8, state.baseZoom - 0.4));
+  map.setMinZoom(Math.max(4.8, state.baseZoom - 0.9));
   map.setMaxZoom(13.4);
   updateZoomClasses();
   updateLocator();
@@ -602,3 +605,15 @@ window.addEventListener('resize', () => {
   map.resize();
   updateLocator();
 });
+window.addEventListener('orientationchange', () => {
+  window.setTimeout(() => {
+    map.resize();
+    updateLocator();
+  }, 250);
+});
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    map.resize();
+    updateLocator();
+  });
+}

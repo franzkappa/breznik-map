@@ -7,17 +7,19 @@
   'use strict';
 
   // Story order and the zoom each stop deserves. Only places that are shown
-  // as pins on the map and have popup content are included.
+  // as pins on the map and have popup content are included. The zoom values
+  // are deliberately close-in: each stop should read as a place, not as a
+  // point in a national map.
   const STOPS = [
-    { id: 'breznik', zoom: 11.3 },
-    { id: 'krassava', zoom: 12.2 },
-    { id: 'konska', zoom: 11.4 },
-    { id: 'pernik', zoom: 9.7 },
-    { id: 'studena', zoom: 10.6 },
-    { id: 'stomana', zoom: 10.8 },
-    { id: 'panagyurishte', zoom: 9.6 },
-    { id: 'pleven', zoom: 9.5 },
-    { id: 'gorni', zoom: 10.4 }
+    { id: 'breznik', zoom: 12.4 },
+    { id: 'krassava', zoom: 13.0 },
+    { id: 'konska', zoom: 12.2 },
+    { id: 'pernik', zoom: 10.8 },
+    { id: 'studena', zoom: 11.8 },
+    { id: 'stomana', zoom: 11.8 },
+    { id: 'panagyurishte', zoom: 10.6 },
+    { id: 'pleven', zoom: 10.4 },
+    { id: 'gorni', zoom: 11.4 }
   ];
 
   const stops = STOPS
@@ -29,6 +31,7 @@
 
   const prevBtn = document.getElementById('tour-prev');
   const nextBtn = document.getElementById('tour-next');
+  const overviewBtn = document.getElementById('tour-overview');
   const countEl = document.getElementById('tour-count');
   const totalEl = document.getElementById('tour-total');
   const liveEl = document.getElementById('tour-live');
@@ -97,7 +100,7 @@
     map.flyTo({
       center: center,
       zoom: stop.zoom,
-      offset: [0, 44],       // keep the pin slightly below centre, so the popup fits above
+      offset: [0, window.innerWidth <= 520 ? 58 : 44], // keep the pin slightly below centre, so the popup fits above
       duration: 1350,
       curve: 1.35,
       essential: true
@@ -107,6 +110,22 @@
     window.setTimeout(open, 1650);
   }
 
+  function goToOverview() {
+    index = -1;
+    updateUI();
+    closeOpenPopup();
+
+    if (reduceMotion) {
+      map.fitBounds(ML_VIEW, { padding: overviewPadding(), duration: 0 });
+      return;
+    }
+    map.fitBounds(ML_VIEW, {
+      padding: overviewPadding(),
+      duration: 950,
+      essential: true
+    });
+  }
+
   prevBtn.addEventListener('click', () => {
     if (index > 0) goTo(index - 1);
   });
@@ -114,6 +133,8 @@
   nextBtn.addEventListener('click', () => {
     if (index < stops.length - 1) goTo(index + 1);
   });
+
+  overviewBtn.addEventListener('click', goToOverview);
 
   // Keep the counter in sync when a pin is opened directly on the map.
   // MapLibre labels every marker "Map marker", so restore the place name.
@@ -130,8 +151,16 @@
   });
 
   // Arrow keys work everywhere except while the map canvas is focused:
-  // there MapLibre already uses them to pan the map.
+  // there MapLibre already uses them to pan the map. Home returns to the
+  // general view from anywhere.
   document.addEventListener('keydown', (e) => {
+    if (e.key === 'Home') {
+      const active = document.activeElement;
+      if (active && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName)) return;
+      e.preventDefault();
+      goToOverview();
+      return;
+    }
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
 
     const el = document.activeElement;

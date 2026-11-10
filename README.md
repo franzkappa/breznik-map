@@ -22,10 +22,10 @@ The map now uses a **tiled, vector basemap** instead of a single local raster im
 - **CARTO Positron** vector style: `https://basemaps.cartocdn.com/gl/positron-gl-style/style.json`
 - **MapLibre GL JS 4.7.1**, vendored in `vendor/`.
 - **Relief**: `ArcGIS World Hillshade` raster tiles, desaturated and blended at low opacity. The service sends CORS headers, so it works on GitHub Pages and from `file://`. The hillshade sits above the land colours but below water, roads and labels.
-- CARTO’s own typography is used for **country and sea labels**. All other CARTO symbol layers (cities, roads, POIs) are hidden: the map keeps its own editorial labels for the story places. Four edge labels (Serbia, Romania, Greece, Turkey) and the Black Sea use the same CARTO font stack because country centroids fall outside the initial frame.
+- CARTO’s own country and sea symbol layers are hidden. Country names and the **Black Sea** are drawn by a custom Montserrat SemiBold layer whose label points sit inside each Natural Earth polygon (or clearly in the sea), so Greece, Turkey and the other neighbours stay on the correct side of the border at every zoom and viewport size.
 - **Administrative regions** and **secondary cities** are separate GeoJSON layers, deliberately quieter than the story labels. Region names are the 28 Bulgarian oblasts; the larger cities appear as small dots and labels.
 - Bulgaria has a slightly darker warm fill, loaded from `assets/bulgaria-highlight.js`, so it reads as the subject country against its neighbours. The polygon comes from the OSM Bulgaria boundary. A classic `<script>` is used instead of a local GeoJSON fetch so the map also works when `index.html` is opened directly from disk.
-- National borders are drawn from `assets/borders.js`: the Bulgarian segments use the **same simplified polygon as the fill**, so the dashed line and the fill edge coincide exactly at every zoom. CARTO’s own boundary lines are hidden.
+- National borders are drawn from `assets/borders.js`: the Bulgarian segments use the **same simplified polygon as the fill**, so the dashed line and the fill edge coincide exactly at every zoom. The other Balkan borders come from Natural Earth’s 10m land-boundary lines, which are continuous instead of breaking into short fragments. Maritime stretches are clipped at the coast, so no border continues into the Black Sea or the Aegean. CARTO’s own boundary lines are hidden.
 - The locator inset uses the same Montserrat SemiBold typography, colours and dashed borders as the main map. It is regenerated from Natural Earth with `scripts/build_map_assets.py`.
 
 The visual treatment in `map.js` follows the Le Monde reference: paper background, very light warm-grey roads with a thin grey casing, thin pale-blue rivers, dark-brown dashed national borders, muted administrative labels and pale urban areas/buildings from zoom 13.
@@ -37,21 +37,22 @@ The visual treatment in `map.js` follows the Le Monde reference: paper backgroun
 - **Administrative region labels** for the Bulgarian oblasts, plus a quiet layer of larger secondary cities. The story labels remain the strongest typography.
 - **Locator inset** at bottom right: Bulgaria in the Balkans, with an orange rectangle that updates while the map is panned and zoomed. Clicking the inset recentres the map.
 - **Legend inside the map**, in a semi-transparent panel at top left, with a short explanation and a key for the point and line symbols used on the map.
-- **Guided tour bar** at the bottom centre: previous/next buttons move through the nine story stops and open the matching popup.
+- **Guided tour bar** at the bottom centre: previous/next buttons move through the nine story stops and open the matching popup; a dedicated **Overview** button returns to the general view.
 - **Popups** with the article’s key facts. The Breznik popup groups the very local places — Bardo Hill, Milin Kamak, the Konska and the Bardo spring — because at the national scale they would otherwise sit on top of each other. If a popup would overlap the legend, the legend minimises automatically so the popup stays readable.
 - **English only** for now; a separate Italian version can be produced later.
 - In short iframes (height below 680 px) or narrow ones (width below 760 px) the legend starts collapsed to a single bar with the line “Bulgaria • Water and democracy”; the **+** button expands it.
+- **Phone layout**: the tour bar uses 44 px touch targets, the locator and the partner logos move above it, the legend can be opened without covering the whole screen, popups shrink to the viewport and scroll when a short landscape viewport would clip them. Safe-area insets are respected.
 - Map labels carry only the place name, without a second descriptive line.
 
 ## Guided tour
 
 The guided tour is integrated into `index.html`; `tour.html` is only a redirect kept for old links.
 
-- A **Tour** bar at the bottom centre has **‹** and **›** buttons and a counter (`1 / 9`).
-- Each button flies to the next or previous pin in story order — Breznik, Krassava, Konska, Pernik, Studena, Stomana, Panagyurishte, Pleven, Gorni Dabnik — and opens that place’s popup when the movement ends.
-- The two ends of the sequence are disabled: **‹** on the first stop, **›** on the last.
+- A **Tour** bar at the bottom centre has **‹** and **›** buttons, a counter (`1 / 9`) and an **Overview** button that flies back to the full Bulgaria frame.
+- Each button flies to the next or previous pin in story order — Breznik, Krassava, Konska, Pernik, Studena, Stomana, Panagyurishte, Pleven, Gorni Dabnik — and opens that place’s popup when the movement ends. The stops are deliberately close-in (zoom 10.4–13.0) so each place reads as a place rather than as a point on a national map.
+- The two ends of the sequence are disabled: **‹** on the first stop, **›** on the last. **Overview** also resets the counter and clears the active pin.
 - Clicking a pin directly also updates the counter, so the buttons continue from the place the reader just opened.
-- The **left and right arrow keys** do the same when the page or the tour bar has focus. When the map canvas has focus the arrows keep panning the map instead.
+- The **left and right arrow keys** do the same when the page or the tour bar has focus. When the map canvas has focus the arrows keep panning the map instead. **Home** returns to the general view.
 - The buttons respect `prefers-reduced-motion`: the map jumps without animation and opens the popup immediately.
 
 ## Files
@@ -63,13 +64,13 @@ map.js                     MapLibre setup, CARTO styling, markers, popups, locat
 tour.js                    guided-tour sequence, buttons and keyboard controls
 scripts/
   build_map_assets.py      rebuilds the locator inset and the highlight script
-  build_borders.py         rebuilds the national-border lines from the same polygons
+  build_borders.py         rebuilds the national-border lines (OSM + Natural Earth 10m)
   build_labels.py          rebuilds the region and city label layers
 assets/
   bulgaria-highlight.js    runtime OSM Bulgaria polygon (works from file://)
   bulgaria-osm.geojson     source polygon for the highlight and Bulgarian borders
   neighbors-osm.geojson    OSM neighbour polygons used to clip the Bulgarian border
-  borders.js               national-border lines (Bulgarian segments share the fill geometry)
+  borders.js               national-border lines, land-only (Bulgarian segments share the fill geometry)
   place-labels.js          administrative region and secondary-city label points
   balkans-countries.geojson  Natural Earth polygons used to build the locator
   locator.webp             Balkans locator basemap, Montserrat labels
@@ -98,7 +99,7 @@ python3 scripts/build_borders.py      # dashed national borders
 python3 scripts/build_labels.py       # oblast and city labels
 ```
 
-`build_map_assets.py` downloads Natural Earth 50m data on its first run and expects Montserrat SemiBold in `~/Library/Fonts`; use `--font` and `--font-italic` to point elsewhere. `build_labels.py` downloads Natural Earth 10m admin-1 on its first run.
+`build_map_assets.py` downloads Natural Earth 50m data on its first run and expects Montserrat SemiBold in `~/Library/Fonts`; use `--font` and `--font-italic` to point elsewhere. `build_borders.py` downloads Natural Earth 10m land and land-boundary lines on its first run. `build_labels.py` downloads Natural Earth 10m admin-1 on its first run.
 
 ## Notes
 
