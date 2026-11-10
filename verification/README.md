@@ -134,7 +134,7 @@ cd "produzione editoriale/produzione editoriale/Hugo/mappa_breznik"
 python3 verification/verify_geolocation.py
 ```
 
-Output atteso: tabella con 13 POI + 1 controllo locator e la riga finale `ALL CHECKS PASS` (exit code 0).
+Output atteso: tabella con 13 POI + 5 controlli locator e la riga finale `ALL CHECKS PASS` (exit code 0).
 
 Per il controllo visivo:
 
