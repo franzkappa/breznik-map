@@ -58,9 +58,12 @@ function applyEditorialStyle() {
 
   setP('water', 'fill-color', '#cfe4e6');
   setP('water_shadow', 'fill-color', 'rgba(143, 185, 192, .18)');
-  setP('waterway', 'line-color', '#8dbcc4');
-  setP('waterway', 'line-width', .8);
-  setP('waterway', 'line-opacity', .9);
+  // Rivers and lakes use the same tint as the sea, so all water reads as one
+  // element. The line is kept above the country fill and hillshade but below
+  // the water fills, so it never shows through across a lake.
+  setP('waterway', 'line-color', '#cfe4e6');
+  setP('waterway', 'line-width', ['interpolate', ['linear'], ['zoom'], 5, 1, 9, 1.4, 12, 1.9, 14, 2.4]);
+  setP('waterway', 'line-opacity', 1);
 
   map.getStyle().layers.forEach(layer => {
     const id = layer.id;
@@ -125,11 +128,63 @@ function applyEditorialStyle() {
     setL(layer.id, 'visibility', 'none');
   });
 
+  addWaterLabels();
   addCountryHighlight();
   addHillshade();
   addBorders();
   addPlaceLabels();
   addCountryLabels();
+
+  // The basemap draws rivers beneath the country fill and the hillshade, where
+  // the warm Bulgaria tint washes them out. Lift the lines above those but keep
+  // them below the water fills, so no river line is ever drawn across a lake.
+  // This has to run after the highlight and hillshade layers are added.
+  if (map.getLayer('waterway') && map.getLayer('water')) {
+    map.moveLayer('waterway', 'water');
+  }
+}
+
+/* River and lake names come from the basemap's own water labels, re-enabled
+   here with the editorial typography. Only features that carry an English
+   name are kept, so nothing is shown in Cyrillic; the threshold keeps the
+   overview clean and lets names appear from zoom 9 inwards. */
+function addWaterLabels() {
+  const englishName = ['all', ['has', 'name:en'], ['!=', ['get', 'name:en'], '']];
+
+  if (map.getLayer('waterway_label')) {
+    setL('waterway_label', 'visibility', 'visible');
+    setL('waterway_label', 'text-field', ['get', 'name:en']);
+    setL('waterway_label', 'text-font', ['Montserrat Medium Italic']);
+    setL('waterway_label', 'text-size', ['interpolate', ['linear'], ['zoom'], 9, 8.5, 11, 9.4, 13, 10.8]);
+    setL('waterway_label', 'text-letter-spacing', .04);
+    setP('waterway_label', 'text-color', '#467f8c');
+    setP('waterway_label', 'text-halo-color', '#f4eee2');
+    setP('waterway_label', 'text-halo-width', 1.4);
+    setP('waterway_label', 'text-opacity', .95);
+    map.setFilter('waterway_label', ['all',
+      ['==', ['geometry-type'], 'LineString'],
+      ['==', ['get', 'kind'], 'river'],
+      englishName
+    ]);
+    map.setLayerZoomRange('waterway_label', 9, 24);
+  }
+
+  if (map.getLayer('watername_lake')) {
+    setL('watername_lake', 'visibility', 'visible');
+    setL('watername_lake', 'text-field', ['get', 'name:en']);
+    setL('watername_lake', 'text-font', ['Montserrat Medium Italic']);
+    setL('watername_lake', 'text-size', ['interpolate', ['linear'], ['zoom'], 10, 8.5, 12, 9.6, 14, 11]);
+    setP('watername_lake', 'text-color', '#3f7783');
+    setP('watername_lake', 'text-halo-color', '#f4eee2');
+    setP('watername_lake', 'text-halo-width', 1.4);
+    setP('watername_lake', 'text-opacity', .95);
+    map.setFilter('watername_lake', ['all',
+      ['==', ['geometry-type'], 'Point'],
+      ['in', ['get', 'kind'], ['literal', ['lake', 'water', 'reservoir']]],
+      englishName
+    ]);
+    map.setLayerZoomRange('watername_lake', 10, 24);
+  }
 }
 
 /* A warm, slightly darker fill makes Bulgaria stand out from its neighbours

@@ -75,7 +75,7 @@
   .key-dot.justice{background:var(--orange)}
   .key-dot.spring{background:#fff;border:2px solid var(--teal);box-shadow:none}
   .key-line{width:20px;height:0;border-top:2px solid #a8aaa3}
-  .key-line.river{border-top-color:#6ea6b0;border-top-width:1.5px}
+  .key-line.river{border-top-color:#cfe4e6;border-top-width:2px}
   .key-line.border{border-top:1px dashed #5b3d2a}
   .panel-source{
     margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);
@@ -517,7 +517,7 @@ const GLYPHS = {
 
 const PLACES = [
   {
-    id:'breznik', cat:'town', coords:[42.7417,22.8981], size:21, dir:'left', off:[-12,-4], labelClass:'major',
+    id:'breznik', cat:'town', coords:[42.7417,22.8981], size:16, dir:'left', off:[-12,-4], labelClass:'major',
     label:{ en:{name:'Breznik',sub:'5,426 residents'}, it:{name:'Breznik',sub:'5.426 abitanti'} },
     kicker:{en:'The town at the centre',it:'La città al centro'}, title:{en:'Breznik',it:'Breznik'},
     stat:{en:'5,426 residents',it:'5.426 abitanti'},
@@ -585,7 +585,7 @@ const PLACES = [
     label:{ en:{name:'Sofia',sub:'The capital · 30 km east'}, it:{name:'Sofia',sub:'La capitale · 30 km a est'} },
   },
   {
-    id:'pernik', cat:'town', coords:[42.6050,23.0350], size:18, dir:'left', off:[-12,2],
+    id:'pernik', cat:'town', coords:[42.6050,23.0350], size:16, dir:'left', off:[-12,2],
     label:{ en:{name:'Pernik',sub:'The 2019 crisis'}, it:{name:'Pernik',sub:'La crisi del 2019'} },
     kicker:{en:'The 2019 crisis',it:'La crisi del 2019'}, title:{en:'Pernik',it:'Pernik'},
     stat:{en:'~100,000 people affected',it:'~100.000 persone coinvolte'},
@@ -615,7 +615,7 @@ const PLACES = [
     }
   },
   {
-    id:'pleven', cat:'town', coords:[43.4170,24.6160], size:18, dir:'right', off:[12,0], labelClass:'major',
+    id:'pleven', cat:'town', coords:[43.4170,24.6160], size:16, dir:'right', off:[12,0], labelClass:'major',
     label:{ en:{name:'Pleven',sub:'>100,000 affected'}, it:{name:'Pleven',sub:'>100.000 coinvolti'} },
     kicker:{en:'The northern crisis',it:'La crisi del nord'}, title:{en:'Pleven',it:'Pleven'},
     stat:{en:'>100,000 people affected',it:'>100.000 persone coinvolte'},
@@ -708,7 +708,7 @@ function popupHTML(p){
 <script src="assets/borders.js?v=20261110-6"></script>
 <script src="assets/place-labels.js?v=20261110-2"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script src="map.js?v=20261110-17"></script>
+<script src="map.js?v=20261110-28"></script>
 <script src="tour.js?v=20261110-7"></script>
 </body>
 </html>
