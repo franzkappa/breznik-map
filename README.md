@@ -37,7 +37,7 @@ The visual treatment in `map.js` follows the Le Monde reference: paper backgroun
 - **Administrative region labels** for the Bulgarian oblasts, plus a quiet layer of larger secondary cities. The story labels remain the strongest typography.
 - **Locator inset** at bottom right: Bulgaria in the Balkans, with an orange rectangle that updates while the map is panned and zoomed. Clicking the inset recentres the map.
 - **Legend inside the map**, in a semi-transparent panel at top left, with a short explanation and a key for the point and line symbols used on the map. Points sit in the left column and lines in the right one.
-- **Guided tour bar** at the bottom centre: previous/next buttons move through the twelve story stops and open the matching popup; a dedicated **Overview** button returns to the general view.
+- **Guided tour bar** at the bottom centre: previous/next buttons move through the eleven story stops and open the matching popup; a dedicated **Overview** button returns to the general view.
 - **Popups** with the article’s key facts. The Breznik popup also summarises the very local places — Bardo Hill, Milin Kamak, the Konska and the Bardo spring — which at the national scale would otherwise sit on top of each other. If a popup would overlap the legend, the legend minimises automatically so the popup stays readable. On phones, a direct tap on a pin nudges the map so the whole popup stays on screen and above the tour bar.
 - **English only** for now; a separate Italian version can be produced later.
 - In short iframes (height below 680 px) or narrow ones (width below 760 px) the legend starts collapsed to a single bar with the line “Bulgaria • Water and democracy”; the **+** button expands it.
@@ -48,10 +48,10 @@ The visual treatment in `map.js` follows the Le Monde reference: paper backgroun
 
 The guided tour is integrated into `index.html`; `tour.html` is only a redirect kept for old links.
 
-- A **Tour** bar at the bottom centre has **‹** and **›** buttons, a counter (`1 / 12`) and an **Overview** button that flies back to the full Bulgaria frame.
-- Each button flies to the next or previous pin in story order — Breznik, Bardo Hill, Milin Kamak, the Bardo spring, Krassava, Konska, Pernik, Studena, Stomana, Panagyurishte, Pleven, Gorni Dabnik — and opens that place’s popup when the movement ends. The stops are deliberately close-in (zoom 10.4–13.4) so each place reads as a place rather than as a point on a national map; the three secondary POIs around Breznik need zoom 11 or more before their pins are drawn.
+- A **Tour** bar at the bottom centre has **‹** and **›** buttons, a counter (`1 / 11`) and an **Overview** button that flies back to the full Bulgaria frame.
+- Each button flies to the next or previous pin in story order — Breznik, Milin Kamak, the Bardo spring, Krassava, Konska, Pernik, Studena, Stomana, Panagyurishte, Pleven, Gorni Dabnik — and opens that place’s popup when the movement ends. Bardo Hill keeps its pin and popup but is not a tour stop. The stops are deliberately close-in (zoom 10.4–13.4) so each place reads as a place rather than as a point on a national map; the two secondary POIs around Breznik need zoom 11 or more before their pins are drawn.
 - The two ends of the sequence are disabled: **‹** on the first stop, **›** on the last. **Overview** also resets the counter and clears the active pin.
-- Clicking a pin directly also updates the counter, so the buttons continue from the place the reader just opened.
+- Clicking a pin directly also updates the counter, so the buttons continue from the place the reader just opened; Bardo Hill opens its popup but clears the counter, since it is not a stop.
 - The **left and right arrow keys** do the same when the page or the tour bar has focus. When the map canvas has focus the arrows keep panning the map instead. **Home** returns to the general view.
 - The buttons respect `prefers-reduced-motion`: the map jumps without animation and opens the popup immediately.
 

@@ -6,14 +6,14 @@
 (function () {
   'use strict';
 
-  // Story order and the zoom each stop deserves. The three detail POIs around
-  // Breznik (Bardo Hill, Milin Kamak, Bardo spring) come right after the town:
-  // they are only drawn past DETAIL_ZOOM, so their stops must zoom in beyond
-  // it. The zoom values are deliberately close-in: each stop should read as a
-  // place, not as a point in a national map.
+  // Story order and the zoom each stop deserves. Two of the detail POIs around
+  // Breznik (Milin Kamak, Bardo spring) come right after the town: they are
+  // only drawn past DETAIL_ZOOM, so their stops must zoom in beyond it. Bardo
+  // Hill is deliberately not a stop: it keeps its pin and popup, but the tour
+  // skips it. The zoom values are deliberately close-in: each stop should read
+  // as a place, not as a point in a national map.
   const STOPS = [
     { id: 'breznik', zoom: 12.4 },
-    { id: 'bardo', zoom: 13.4 },
     { id: 'milin', zoom: 13.4 },
     { id: 'spring', zoom: 13.4 },
     { id: 'krassava', zoom: 13.0 },
@@ -148,7 +148,13 @@
     el.setAttribute('aria-label', p.label.en.name + ' — open popup');
     el.addEventListener('click', () => {
       const i = stops.findIndex(stop => stop.id === p.id);
-      if (i < 0) return;
+      if (i < 0) {
+        // A pin that is not a tour stop (Bardo Hill): its popup still opens,
+        // but the counter must not keep pointing at a different place.
+        index = -1;
+        updateUI();
+        return;
+      }
       index = i;
       updateUI();
     });
