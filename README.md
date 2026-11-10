@@ -62,7 +62,9 @@ index.html                 the iframe-ready map, with the integrated guided tour
 tour.html                  redirect to index.html for old links
 map.js                     MapLibre setup, CARTO styling, markers, popups, locator
 tour.js                    guided-tour sequence, buttons and keyboard controls
+HANDOFF.md                 current state, next task and verification commands
 scripts/
+  check.sh                 quick syntax, dependency and geolocation check
   build_map_assets.py      rebuilds the locator inset and the highlight script
   build_borders.py         rebuilds the national-border lines (OSM + Natural Earth 10m)
   build_labels.py          rebuilds the region and city label layers
@@ -89,6 +91,12 @@ python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
+Quick check before a commit:
+
+```bash
+./scripts/check.sh
+```
+
 You can also open `index.html` directly from disk; the local highlight, borders and labels are scripts, not fetched GeoJSON files. Network access is required for the CARTO style/tiles and the ArcGIS hillshade. The CARTO, OpenStreetMap and Esri/USGS/NASA attributions must remain visible; see `verification/README.md` for the POI audit.
 
 To rebuild the locator inset and the `bulgaria-highlight.js` wrapper after a palette or typography change:
@@ -100,6 +108,12 @@ python3 scripts/build_labels.py       # oblast and city labels
 ```
 
 `build_map_assets.py` downloads Natural Earth 50m data on its first run and expects Montserrat SemiBold in `~/Library/Fonts`; use `--font` and `--font-italic` to point elsewhere. `build_borders.py` downloads Natural Earth 10m land and land-boundary lines on its first run. `build_labels.py` downloads Natural Earth 10m admin-1 on its first run.
+
+## Handoff
+
+`HANDOFF.md` is the compact source of truth for a new session: current state,
+next task, key files and verification commands. Update it at the end of every
+session and keep it under ~100 lines.
 
 ## Notes
 

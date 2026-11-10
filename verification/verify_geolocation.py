@@ -3,8 +3,8 @@
 The script reads the coordinates from the PLACES array in index.html and
 compares them with independent references (OpenStreetMap features, the OSM
 water/river layers shipped with the map, and an OSM landuse polygon for the
-Stomana steelworks).  It also checks that the basemap and locator images are
-aligned with the same coordinates.
+Stomana steelworks).  It also checks the locator image size and the dynamic
+locator hooks used by map.js.
 
 Run from the map folder:
 
@@ -181,41 +181,45 @@ def check_places():
 
 
 def check_images():
-    """Check the locator dot against the coordinates used by the page."""
-    try:
-        import numpy as np
-        from PIL import Image
-    except Exception as exc:
-        return [("locator/dot", "", "", "Pillow/numpy unavailable", str(exc), "SKIP")], True
-
-    def merc_y(lat):
-        return math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
-
-    def merc_x(lon):
-        return math.radians(lon)
-
+    """Check the locator image and the dynamic locator hooks."""
     rows = []
     ok_all = True
 
-    # Locator: compare the baked-in orange dot with the HTML position for Breznik.
-    loc = np.asarray(Image.open(BASE / "assets" / "locator.webp").convert("RGB")).astype(int)
-    tgt = np.array([242, 107, 33])
-    dd = np.sqrt(((loc - tgt) ** 2).sum(axis=2))
-    ys, xs = np.where(dd < 45)
-    if len(xs) == 0:
-        rows.append(("locator/dot", 42.7417, 22.8981, "locator.webp", "orange dot not found", "FAIL"))
+    locator_path = BASE / "assets" / "locator.webp"
+    if not locator_path.exists():
+        return [("locator/image", "", "", "assets/locator.webp", "missing", "FAIL")], False
+
+    try:
+        from PIL import Image
+
+        with Image.open(locator_path) as image:
+            width, height = image.size
+        size_ok = (width, height) == (900, 829)
+        rows.append((
+            "locator/image", "", "", "assets/locator.webp",
+            f"{width}x{height} px (expected 900x829)",
+            "PASS" if size_ok else "FAIL",
+        ))
+        ok_all = ok_all and size_ok
+    except Exception as exc:
+        rows.append(("locator/image", "", "", "assets/locator.webp", str(exc), "FAIL"))
         ok_all = False
-    else:
-        cx, cy = xs.mean(), ys.mean()
-        lw, lh = 900, 828
-        lat, lon = 42.7417, 22.8981
-        ex = (merc_x(lon) - merc_x(18)) / (merc_x(30.5) - merc_x(18)) * lw
-        ey = (merc_y(46.5) - merc_y(lat)) / (merc_y(46.5) - merc_y(38)) * lh
-        d = math.hypot(cx - ex, cy - ey)
-        ok = d <= 3
-        rows.append(("locator/dot", lat, lon, "baked-in orange dot vs HTML position",
-                     f"offset {d:.1f} px", "PASS" if ok else "FAIL"))
-        ok_all = ok_all and ok
+
+    index_text = INDEX.read_text(encoding="utf-8")
+    map_text = (BASE / "map.js").read_text(encoding="utf-8")
+    hooks = [
+        ("locator/dot hook", 'id="locator-dot"' in index_text),
+        ("locator/rect hook", 'id="locator-rect"' in index_text),
+        ("locator/position fn", "function positionDot()" in map_text),
+        ("locator/update fn", "function updateLocator()" in map_text),
+    ]
+    for name, present in hooks:
+        rows.append((
+            name, "", "", "static hook",
+            "found" if present else "missing",
+            "PASS" if present else "FAIL",
+        ))
+        ok_all = ok_all and present
 
     return rows, ok_all
 

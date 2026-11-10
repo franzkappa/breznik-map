@@ -4,7 +4,7 @@
 **Oggetto:** studio della cartella `mappa_breznik` e controllo della geolocalizzazione dei punti d'interesse (POI) della mappa “Breznik and the water crisis”.  
 **Esito sintetico:** 13 POI verificati; **1 errore di geolocalizzazione trovato e corretto** (sorgente del Bardo); dopo la correzione tutti i controlli automatici passano (`ALL CHECKS PASS`). Restano alcune osservazioni editoriali non bloccanti (quota del Bardo, etichette dei Paesi vicini, offset del pin di Breznik).
 
-> **Stato attuale:** la mappa è passata alla basemap esterna **CARTO Positron + MapLibre**, con hillshade SRTM. Le coordinate dei POI sono rimaste identiche, compresa la sorgente del Bardo. La vecchia basemap `assets/basemap_embed.webp`, gli script di rendering locale e `carto-preview/` sono stati rimossi. Questo documento resta come verifica storica delle coordinate; il solo controllo immagine ancora applicabile è quello del locator.
+> **Stato attuale:** la mappa è passata alla basemap esterna **CARTO Positron + MapLibre**, con hillshade SRTM. Le coordinate dei POI sono rimaste identiche, compresa la sorgente del Bardo. La vecchia basemap `assets/basemap_embed.webp`, gli script di rendering locale e `carto-preview/` sono stati rimossi. Questo documento resta come verifica storica delle coordinate; il controllo del locator è ora statico e verifica gli hook dinamici usati da `map.js`.
 
 ---
 
@@ -87,13 +87,15 @@ Il popup non cambia: continua a descrivere la sorgente ferruginosa nota come “
 
 ## 5. Allineamento del locator (la basemap locale non esiste più)
 
-> I controlli su `basemap_embed.webp` sono storici e non sono più applicabili dopo il passaggio a CARTO. Resta valido il controllo del pallino del locator.
+> I controlli su `basemap_embed.webp` sono storici e non sono più applicabili dopo il passaggio a CARTO. Il locator usa un'immagine di base senza pallino cotto: pallino e rettangolo sono elementi HTML posizionati da `map.js`.
 
 | Controllo | Misura | Esito |
 |---|---|---|
-| Locator: pallino arancione “cotto” vs posizione calcolata dal codice | 1,2 px | PASS |
+| Locator: immagine di base `assets/locator.webp` | 900x829 px | PASS |
+| Locator: hook `#locator-dot` e `#locator-rect` | presenti in `index.html` | PASS |
+| Locator: `positionDot()` e `updateLocator()` | presenti in `map.js` | PASS |
 
-I controlli storici sulla vecchia `basemap_embed.webp` non sono più applicabili: la basemap è ora vettoriale e viene servita da CARTO. Il rettangolo e il pallino del locator restano coerenti con il punto di Breznik.
+I controlli storici sulla vecchia `basemap_embed.webp` non sono più applicabili: la basemap è ora vettoriale e viene servita da CARTO. Il rettangolo e il pallino del locator sono dinamici e restano coerenti con il punto di Breznik.
 
 **Caricamento pagina:** 9 pin visibili, 10 etichette, loader nascosto, nessun errore JavaScript e nessuna risposta HTTP ≥ 400, incluso il favicon (ora servito da `favicon.ico`). Verifica eseguita con Chrome headless e profilo nuovo via DevTools Protocol. I tre POI `detail` non sono disegnati per scelta (sono nel popup di Breznik).
 
