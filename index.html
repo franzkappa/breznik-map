@@ -67,16 +67,15 @@
   }
   .legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}
   .legend-row{display:flex;align-items:center;gap:6px;font-size:9.2px;line-height:1.2;color:var(--ink-soft)}
-  .key-dot,.key-line,.key-area{flex:0 0 auto;display:inline-block}
-  .key-dot{width:9px;height:9px;border-radius:50%;background:var(--navy)}
+  .key-dot,.key-line{flex:0 0 auto;display:inline-block}
+  .key-dot{width:9px;height:9px;border-radius:50%;background:var(--navy);box-shadow:0 0 0 2px #fff,0 1px 3px rgba(20,25,24,.22)}
   .key-dot.water{background:var(--teal)}
   .key-dot.mine{background:var(--olive);border-radius:1px;transform:rotate(45deg)}
   .key-dot.justice{background:var(--orange)}
-  .key-dot.spring{background:#fff;border:2px solid var(--teal)}
-  .key-line{width:20px;height:0;border-top:2px solid #c9975c}
+  .key-dot.spring{background:#fff;border:2px solid var(--teal);box-shadow:none}
+  .key-line{width:20px;height:0;border-top:2px solid #a8aaa3}
   .key-line.river{border-top-color:#6ea6b0;border-top-width:1.5px}
-  .key-line.border{border-top:1px dashed #6f6a5c}
-  .key-area{width:12px;height:9px;background:#e3d8c2;border:1px solid #d0c3ab}
+  .key-line.border{border-top:1px dashed #5b3d2a}
   .panel-source{
     margin-top:10px;padding-top:8px;border-top:1px solid var(--rule);
     font-size:8px;line-height:1.4;color:var(--muted);
@@ -344,6 +343,46 @@
   .place-label-wrap.zoom-label{display:none}
   body.zoom-labels .place-label-wrap.zoom-label{display:block}
 
+  /* ------------------------------------------------------------ tour bar */
+  .tour{
+    position:absolute;left:50%;bottom:24px;transform:translateX(-50%);z-index:750;
+    display:flex;align-items:stretch;
+    background:rgba(251,246,236,.96);border:1px solid rgba(32,39,38,.22);
+    box-shadow:0 10px 30px rgba(20,25,24,.16);backdrop-filter:blur(7px);
+  }
+  .tour-label{
+    display:flex;align-items:center;padding:0 10px;border-right:1px solid rgba(32,39,38,.16);
+    font-size:8px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--muted);
+  }
+  .tour-btn{
+    width:36px;height:38px;padding:0;border:0;background:transparent;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;color:var(--ink);
+  }
+  .tour-btn svg{width:15px;height:15px;display:block}
+  .tour-btn:hover:not(:disabled){background:rgba(255,255,255,.72)}
+  .tour-btn:focus-visible{outline:2px solid var(--orange);outline-offset:-2px}
+  .tour-btn:disabled{color:rgba(99,113,127,.32);cursor:default}
+  .tour-count{
+    min-width:52px;display:flex;align-items:center;justify-content:center;
+    font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--ink-soft);
+    border-left:1px solid rgba(32,39,38,.16);border-right:1px solid rgba(32,39,38,.16);
+  }
+  .tour-count b{font-weight:700;color:var(--ink)}
+  .sr-only{
+    position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+    clip:rect(0,0,0,0);white-space:nowrap;border:0;
+  }
+  .pin-wrap.is-tour .pin{box-shadow:0 0 0 4px rgba(242,107,33,.34),0 1px 5px rgba(20,25,24,.42)}
+
+  @media(max-width:760px){
+    .tour{bottom:30px}
+    .locator{bottom:76px}
+  }
+  @media(max-width:520px){
+    .tour-label{display:none}
+    .locator{width:158px;bottom:74px;right:8px}
+  }
+
 </style>
 </head>
 <body>
@@ -362,9 +401,8 @@
     <div class="legend-row"><span class="key-line"></span><span data-i18n="kRoad">Roads</span></div>
     <div class="legend-row"><span class="key-line river"></span><span data-i18n="kRiver">Rivers</span></div>
     <div class="legend-row"><span class="key-line border"></span><span data-i18n="kBorder">Borders</span></div>
-    <div class="legend-row"><span class="key-area"></span><span data-i18n="kUrban">Urban areas</span></div>
   </div>
-  <div class="panel-source" data-i18n="source">Basemap: © CARTO · © OpenStreetMap contributors · Locator: Natural Earth</div>
+  <div class="panel-source" data-i18n="source">Basemap and country shapes: © CARTO · © OpenStreetMap contributors · Hillshade: Esri, USGS, NGA, NASA and contributors · Locator: Natural Earth</div>
 </aside>
 
 <div class="brands">
@@ -384,6 +422,18 @@
   </div>
 </div>
 
+<div class="tour" role="group" aria-label="Guided tour of the map">
+  <span class="tour-label">Tour</span>
+  <button class="tour-btn" id="tour-prev" type="button" aria-label="Previous place" disabled>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
+  </button>
+  <div class="tour-count" id="tour-count"><b>–</b>&nbsp;/&nbsp;<span id="tour-total">9</span></div>
+  <button class="tour-btn" id="tour-next" type="button" aria-label="Next place">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 16.5 12 9 19.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
+  </button>
+</div>
+<span class="sr-only" id="tour-live" aria-live="polite"></span>
+
 <div class="attrib" data-i18n-html="attrib">© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors</div>
 <div class="loader" id="loader"><span data-i18n="loading">Loading map</span><span class="bar"></span></div>
 
@@ -395,11 +445,10 @@ const LOC_BOUNDS = [[38.0, 18.0], [46.5, 30.5]];
 
 const COLORS = { town:'#171846', water:'#008aad', mine:'#8f9422', justice:'#f26b21', spring:'#008aad' };
 const GLYPHS = {
-  water:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.7s6.2 7.2 6.2 11.4a6.2 6.2 0 1 1-12.4 0C5.8 9.9 12 2.7 12 2.7z" fill="#fff"/></svg>',
-  justice:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="#fff"/></svg>',
+  water:'',
   spring:'<span class="inner"></span>',
-  mine:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l5.2 7-5.2 7-5.2-7z" fill="#fff"/></svg>',
-  town:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.4" fill="#fff"/></svg>'
+  mine:'',
+  town:''
 };
 
 const PLACES = [
@@ -540,8 +589,8 @@ const I18N = {
     deck:'A map of the places named in the investigation: the town, its reservoir, the mine on Bardo Hill, and the wider geography of Bulgaria’s water crisis.',
     legendTitle:'Key',
     kTown:'Town', kWater:'Water', kMine:'Mine',
-    kRoad:'Roads', kRiver:'Rivers', kBorder:'Borders', kUrban:'Urban areas',
-    source:'Basemap: © CARTO · © OpenStreetMap contributors · Locator: Natural Earth',
+    kRoad:'Roads', kRiver:'Rivers', kBorder:'Borders',
+    source:'Basemap and country shapes: © CARTO · © OpenStreetMap contributors · Hillshade: Esri, USGS, NGA, NASA and contributors · Locator: Natural Earth',
     attrib:'© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
     loading:'Loading map'
   }
@@ -569,7 +618,11 @@ function popupHTML(p){
   </div>`;
 }
 </script>
+<script src="assets/bulgaria-highlight.js?v=20261110-3"></script>
+<script src="assets/borders.js?v=20261110-2"></script>
+<script src="assets/place-labels.js?v=20261110-2"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script src="map.js?v=20261109-3"></script>
+<script src="map.js?v=20261110-6"></script>
+<script src="tour.js?v=20261110-6"></script>
 </body>
 </html>

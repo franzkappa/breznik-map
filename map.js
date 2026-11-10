@@ -3,7 +3,7 @@
 
 const CARTO_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
 // MapLibre order: west, south / east, north
-const ML_VIEW = [[21.35, 41.20], [28.05, 44.50]];
+const ML_VIEW = [[21.35, 41.20], [28.95, 44.50]];
 const ML_MAX = [[18.00, 38.00], [31.00, 46.50]];
 
 const map = new maplibregl.Map({
@@ -46,8 +46,9 @@ function applyEditorialStyle() {
 
   setP('water', 'fill-color', '#cfe4e6');
   setP('water_shadow', 'fill-color', 'rgba(143, 185, 192, .18)');
-  setP('waterway', 'line-color', '#6ea6b0');
-  setP('waterway', 'line-width', 1.1);
+  setP('waterway', 'line-color', '#8dbcc4');
+  setP('waterway', 'line-width', .8);
+  setP('waterway', 'line-opacity', .9);
 
   map.getStyle().layers.forEach(layer => {
     const id = layer.id;
@@ -65,7 +66,7 @@ function applyEditorialStyle() {
 
     if (layer['source-layer'] === 'roads' && layer.type === 'line') {
       if (id.includes('path')) {
-        setP(id, 'line-color', '#d8b98f');
+        setP(id, 'line-color', '#e3dfd4');
         setP(id, 'line-width', ['interpolate', ['linear'], ['zoom'], 12, .5, 15, 1.6]);
         map.setLayerZoomRange(id, 12, 24);
         return;
@@ -78,7 +79,7 @@ function applyEditorialStyle() {
       const base = isMotor ? 1.2 : isPrimary ? .8 : isMinor ? .4 : .55;
       const width = isCase ? base * 2.2 : base;
 
-      setP(id, 'line-color', isCase ? '#fbf5e9' : '#c9975c');
+      setP(id, 'line-color', isCase ? '#c9c6bb' : isMinor ? '#efece3' : '#f7f3ea');
       setP(id, 'line-width', [
         'interpolate', ['linear'], ['zoom'],
         5, width,
@@ -90,17 +91,16 @@ function applyEditorialStyle() {
     }
   });
 
-  // national borders: same grey dashed language as the local basemap
-  setP('boundary_country_outline', 'line-color', '#f4eee2');
-  setP('boundary_country_outline', 'line-width', 2.8);
-  setP('boundary_country_inner', 'line-color', '#4a463c');
-  setP('boundary_country_inner', 'line-width', 1.25);
-  setP('boundary_country_inner', 'line-opacity', .92);
-  setP('boundary_country_inner', 'line-dasharray', [4, 2]);
+  // National borders are drawn from assets/borders.js so the Bulgaria fill
+  // and the dashed line share the exact same geometry. CARTO's own boundary
+  // lines are hidden to avoid a second, slightly offset line.
+  ['boundary_country_outline', 'boundary_country_inner'].forEach(id => {
+    setL(id, 'visibility', 'none');
+  });
   ['boundary_state', 'boundary_county'].forEach(id => {
-    setP(id, 'line-color', '#8a8375');
-    setP(id, 'line-width', .55);
-    setP(id, 'line-opacity', .25);
+    setP(id, 'line-color', '#8a6b52');
+    setP(id, 'line-width', .5);
+    setP(id, 'line-opacity', .16);
   });
 
   // Keep CARTO's own typographic label layers only for countries and the sea.
@@ -128,7 +128,210 @@ function applyEditorialStyle() {
   setP('watername_sea', 'text-halo-color', '#cfe4e6');
   setP('watername_sea', 'text-halo-width', 1.2);
 
+  addCountryHighlight();
+  addHillshade();
+  addBorders();
+  addPlaceLabels();
   addEdgeLabels();
+}
+
+/* A warm, slightly darker fill makes Bulgaria stand out from its neighbours
+   without breaking the paper palette. It sits above landcover but beneath
+   water and roads, so it stays visible at every zoom. */
+function addCountryHighlight() {
+  // Loaded from assets/bulgaria-highlight.js so the map also works from file://,
+  // where fetching a local GeoJSON file is blocked by the browser.
+  if (!window.BULGARIA_HIGHLIGHT) return;
+  if (!map.getSource('bulgaria-highlight')) {
+    map.addSource('bulgaria-highlight', {
+      type: 'geojson',
+      data: window.BULGARIA_HIGHLIGHT
+    });
+  }
+  if (!map.getLayer('country-highlight-bulgaria')) {
+    const layer = {
+      id: 'country-highlight-bulgaria',
+      type: 'fill',
+      source: 'bulgaria-highlight',
+      filter: ['==', ['get', 'name'], 'Bulgaria'],
+      paint: {
+        'fill-color': '#ddc9a3',
+        'fill-opacity': ['interpolate', ['linear'], ['zoom'], 5, .9, 7.5, .82, 9, .56, 11, .38, 13, .28]
+      }
+    };
+    if (map.getLayer('water')) map.addLayer(layer, 'water');
+    else map.addLayer(layer);
+  }
+}
+
+/* Soft, desaturated relief under the water, roads and labels. */
+function addHillshade() {
+  if (!map.getSource('hillshade')) {
+    map.addSource('hillshade', {
+      type: 'raster',
+      tiles: ['https://services.arcgisonline.com/ArcGIS/rest/services/Elevation/World_Hillshade/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      maxzoom: 16,
+      attribution: 'Hillshade: Esri, USGS, NGA, NASA and contributors'
+    });
+  }
+  if (!map.getLayer('hillshade')) {
+    const layer = {
+      id: 'hillshade',
+      type: 'raster',
+      source: 'hillshade',
+      paint: {
+        'raster-opacity': .3,
+        'raster-saturation': -1,
+        'raster-contrast': .05,
+        'raster-fade-duration': 0,
+        'raster-resampling': 'linear'
+      }
+    };
+    if (map.getLayer('water')) map.addLayer(layer, 'water');
+    else map.addLayer(layer);
+  }
+}
+
+/* Dashed national borders drawn from the same OSM geometry as the Bulgaria
+   fill for the Bulgarian segments, so line and fill coincide exactly. */
+function addBorders() {
+  if (!window.BALKAN_BORDERS) return;
+  if (!map.getSource('balkan-borders')) {
+    map.addSource('balkan-borders', { type: 'geojson', data: window.BALKAN_BORDERS });
+  }
+  if (!map.getLayer('balkan-borders')) {
+    const layer = {
+      id: 'balkan-borders',
+      type: 'line',
+      source: 'balkan-borders',
+      paint: {
+        'line-color': '#5b3d2a',
+        'line-width': 1.25,
+        'line-opacity': .95,
+        'line-dasharray': [4, 2]
+      }
+    };
+    const firstSymbol = map.getStyle().layers.find(l => l.type === 'symbol');
+    if (firstSymbol) map.addLayer(layer, firstSymbol.id);
+    else map.addLayer(layer);
+  }
+}
+
+/* Administrative region labels and secondary cities, deliberately quieter
+   than the story labels. Region labels hand over to city labels as the map
+   zooms in. */
+function addPlaceLabels() {
+  if (!window.PLACE_LABELS) return;
+  if (!map.getSource('place-labels')) {
+    map.addSource('place-labels', { type: 'geojson', data: window.PLACE_LABELS });
+  }
+  if (!map.getLayer('city-major-dots')) {
+    map.addLayer({
+      id: 'city-major-dots',
+      type: 'circle',
+      source: 'place-labels',
+      minzoom: 6.2,
+      maxzoom: 9.4,
+      filter: ['all', ['==', ['get', 'kind'], 'city'], ['==', ['get', 'rank'], 1]],
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 6.2, 1.2, 9, 2],
+        'circle-color': 'rgba(32, 39, 38, .72)',
+        'circle-stroke-color': '#f4eee2',
+        'circle-stroke-width': 1,
+        'circle-opacity': .85
+      }
+    });
+  }
+  if (!map.getLayer('city-major-labels')) {
+    map.addLayer({
+      id: 'city-major-labels',
+      type: 'symbol',
+      source: 'place-labels',
+      minzoom: 6.2,
+      maxzoom: 9.4,
+      filter: ['all', ['==', ['get', 'kind'], 'city'], ['==', ['get', 'rank'], 1]],
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-font': ['Montserrat Medium'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 6.2, 8.6, 9, 10.5],
+        'text-anchor': 'top',
+        'text-offset': [0, .6],
+        'text-padding': 6
+      },
+      paint: {
+        'text-color': 'rgba(32, 39, 38, .8)',
+        'text-halo-color': '#f4eee2',
+        'text-halo-width': 1.2,
+        'text-opacity': .9
+      }
+    });
+  }
+  if (!map.getLayer('region-labels')) {
+    map.addLayer({
+      id: 'region-labels',
+      type: 'symbol',
+      source: 'place-labels',
+      minzoom: 6.2,
+      maxzoom: 8,
+      filter: ['==', ['get', 'kind'], 'region'],
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-font': ['Montserrat SemiBold'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 6.2, 9, 8, 10.5, 9.6, 11.5],
+        'text-letter-spacing': .16,
+        'text-transform': 'uppercase',
+        'text-padding': 8,
+        'text-max-width': 8
+      },
+      paint: {
+        'text-color': 'rgba(79, 85, 76, .52)',
+        'text-halo-color': '#f4eee2',
+        'text-halo-width': 1.2,
+        'text-opacity': .9
+      }
+    });
+  }
+  if (!map.getLayer('city-dots')) {
+    map.addLayer({
+      id: 'city-dots',
+      type: 'circle',
+      source: 'place-labels',
+      minzoom: 8.2,
+      filter: ['==', ['get', 'kind'], 'city'],
+      paint: {
+        'circle-radius': ['interpolate', ['linear'], ['zoom'], 8.2, 1.6, 11, 2.4, 13, 3],
+        'circle-color': 'rgba(32, 39, 38, .72)',
+        'circle-stroke-color': '#f4eee2',
+        'circle-stroke-width': 1,
+        'circle-opacity': .85
+      }
+    });
+  }
+  if (!map.getLayer('city-labels')) {
+    map.addLayer({
+      id: 'city-labels',
+      type: 'symbol',
+      source: 'place-labels',
+      minzoom: 8.2,
+      filter: ['==', ['get', 'kind'], 'city'],
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-font': ['Montserrat Medium'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 8.2, 9.5, 11, 11],
+        'text-anchor': 'top',
+        'text-offset': [0, .65],
+        'text-padding': 6,
+        'symbol-sort-key': ['get', 'rank']
+      },
+      paint: {
+        'text-color': 'rgba(32, 39, 38, .72)',
+        'text-halo-color': '#f4eee2',
+        'text-halo-width': 1.2,
+        'text-opacity': .9
+      }
+    });
+  }
 }
 
 /* CARTO's country labels sit at country centroids, so Romania, Serbia,
@@ -139,10 +342,10 @@ function addEdgeLabels() {
     type: 'FeatureCollection',
     features: [
       { type: 'Feature', properties: { name: 'Romania' }, geometry: { type: 'Point', coordinates: [25.20, 44.45] } },
-      { type: 'Feature', properties: { name: 'Serbia' }, geometry: { type: 'Point', coordinates: [21.75, 42.70] } },
+      { type: 'Feature', properties: { name: 'Serbia' }, geometry: { type: 'Point', coordinates: [21.90, 43.30] } },
       { type: 'Feature', properties: { name: 'Greece' }, geometry: { type: 'Point', coordinates: [22.70, 41.25] } },
       { type: 'Feature', properties: { name: 'Turkey' }, geometry: { type: 'Point', coordinates: [26.20, 41.55] } },
-      { type: 'Feature', properties: { name: 'Black Sea' }, geometry: { type: 'Point', coordinates: [27.75, 43.00] } }
+      { type: 'Feature', properties: { name: 'Black Sea' }, geometry: { type: 'Point', coordinates: [28.42, 43.05] } }
     ]
   };
 

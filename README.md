@@ -21,28 +21,58 @@ The map now uses a **tiled, vector basemap** instead of a single local raster im
 
 - **CARTO Positron** vector style: `https://basemaps.cartocdn.com/gl/positron-gl-style/style.json`
 - **MapLibre GL JS 4.7.1**, vendored in `vendor/`.
-- The SRTM hillshade is **disabled in the GitHub Pages preview**: the public AWS terrarium endpoint does not send CORS headers, so MapLibre cannot read the DEM in the browser. For production, self-host a hillshade or use a CORS-enabled DEM provider.
+- **Relief**: `ArcGIS World Hillshade` raster tiles, desaturated and blended at low opacity. The service sends CORS headers, so it works on GitHub Pages and from `file://`. The hillshade sits above the land colours but below water, roads and labels.
 - CARTO’s own typography is used for **country and sea labels**. All other CARTO symbol layers (cities, roads, POIs) are hidden: the map keeps its own editorial labels for the story places. Four edge labels (Serbia, Romania, Greece, Turkey) and the Black Sea use the same CARTO font stack because country centroids fall outside the initial frame.
+- **Administrative regions** and **secondary cities** are separate GeoJSON layers, deliberately quieter than the story labels. Region names are the 28 Bulgarian oblasts; the larger cities appear as small dots and labels.
+- Bulgaria has a slightly darker warm fill, loaded from `assets/bulgaria-highlight.js`, so it reads as the subject country against its neighbours. The polygon comes from the OSM Bulgaria boundary. A classic `<script>` is used instead of a local GeoJSON fetch so the map also works when `index.html` is opened directly from disk.
+- National borders are drawn from `assets/borders.js`: the Bulgarian segments use the **same simplified polygon as the fill**, so the dashed line and the fill edge coincide exactly at every zoom. CARTO’s own boundary lines are hidden.
+- The locator inset uses the same Montserrat SemiBold typography, colours and dashed borders as the main map. It is regenerated from Natural Earth with `scripts/build_map_assets.py`.
 
-The visual treatment in `map.js` applies the OBCT/CIJI palette to the vector style: paper background, one ochre for all roads with hierarchy by width only, one teal for rivers and reservoirs, grey dashed national borders with a paper halo, pale urban areas and buildings from zoom 13. CARTO’s country typography is retained, and all other symbol layers are hidden.
+The visual treatment in `map.js` follows the Le Monde reference: paper background, very light warm-grey roads with a thin grey casing, thin pale-blue rivers, dark-brown dashed national borders, muted administrative labels and pale urban areas/buildings from zoom 13.
 
 ## What is in the map
 
 - **One map**, covering Bulgaria and its immediate neighbours, with Breznik, Krassava reservoir, Sofia, Pernik, Studena, Stomana, Pleven, Gorni Dabnik, Panagyurishte and the Konska river.
+- **Hillshade relief** in transparency across the whole frame, with the Rhodopes, Pirin, Stara Planina and the Danube plain clearly readable.
+- **Administrative region labels** for the Bulgarian oblasts, plus a quiet layer of larger secondary cities. The story labels remain the strongest typography.
 - **Locator inset** at bottom right: Bulgaria in the Balkans, with an orange rectangle that updates while the map is panned and zoomed. Clicking the inset recentres the map.
-- **Legend inside the map**, in a semi-transparent panel at top left, with a short explanation and a key for point symbols and line/area symbols.
+- **Legend inside the map**, in a semi-transparent panel at top left, with a short explanation and a key for the point and line symbols used on the map.
+- **Guided tour bar** at the bottom centre: previous/next buttons move through the nine story stops and open the matching popup.
 - **Popups** with the article’s key facts. The Breznik popup groups the very local places — Bardo Hill, Milin Kamak, the Konska and the Bardo spring — because at the national scale they would otherwise sit on top of each other. If a popup would overlap the legend, the legend minimises automatically so the popup stays readable.
 - **English only** for now; a separate Italian version can be produced later.
 - In short iframes (height below 680 px) or narrow ones (width below 760 px) the legend starts collapsed to a single bar with the line “Bulgaria • Water and democracy”; the **+** button expands it.
 - Map labels carry only the place name, without a second descriptive line.
 
+## Guided tour
+
+The guided tour is integrated into `index.html`; `tour.html` is only a redirect kept for old links.
+
+- A **Tour** bar at the bottom centre has **‹** and **›** buttons and a counter (`1 / 9`).
+- Each button flies to the next or previous pin in story order — Breznik, Krassava, Konska, Pernik, Studena, Stomana, Panagyurishte, Pleven, Gorni Dabnik — and opens that place’s popup when the movement ends.
+- The two ends of the sequence are disabled: **‹** on the first stop, **›** on the last.
+- Clicking a pin directly also updates the counter, so the buttons continue from the place the reader just opened.
+- The **left and right arrow keys** do the same when the page or the tour bar has focus. When the map canvas has focus the arrows keep panning the map instead.
+- The buttons respect `prefers-reduced-motion`: the map jumps without animation and opens the popup immediately.
+
 ## Files
 
 ```
-index.html                 the iframe-ready map
+index.html                 the iframe-ready map, with the integrated guided tour
+tour.html                  redirect to index.html for old links
 map.js                     MapLibre setup, CARTO styling, markers, popups, locator
+tour.js                    guided-tour sequence, buttons and keyboard controls
+scripts/
+  build_map_assets.py      rebuilds the locator inset and the highlight script
+  build_borders.py         rebuilds the national-border lines from the same polygons
+  build_labels.py          rebuilds the region and city label layers
 assets/
-  locator.webp             Balkans locator basemap
+  bulgaria-highlight.js    runtime OSM Bulgaria polygon (works from file://)
+  bulgaria-osm.geojson     source polygon for the highlight and Bulgarian borders
+  neighbors-osm.geojson    OSM neighbour polygons used to clip the Bulgarian border
+  borders.js               national-border lines (Bulgarian segments share the fill geometry)
+  place-labels.js          administrative region and secondary-city label points
+  balkans-countries.geojson  Natural Earth polygons used to build the locator
+  locator.webp             Balkans locator basemap, Montserrat labels
   logos/                   OBCT and CIJI navy logos
 vendor/                    MapLibre GL JS 4.7.1
 verification/              POI geolocation audit, script and minimal reference data
@@ -58,12 +88,21 @@ python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
-Network access is required for the CARTO style/tiles and AWS terrain tiles. The CARTO and OpenStreetMap attribution must remain visible; see `verification/README.md` for the POI audit.
+You can also open `index.html` directly from disk; the local highlight, borders and labels are scripts, not fetched GeoJSON files. Network access is required for the CARTO style/tiles and the ArcGIS hillshade. The CARTO, OpenStreetMap and Esri/USGS/NASA attributions must remain visible; see `verification/README.md` for the POI audit.
+
+To rebuild the locator inset and the `bulgaria-highlight.js` wrapper after a palette or typography change:
+
+```bash
+python3 scripts/build_map_assets.py   # locator + Bulgarian fill wrapper
+python3 scripts/build_borders.py      # dashed national borders
+python3 scripts/build_labels.py       # oblast and city labels
+```
+
+`build_map_assets.py` downloads Natural Earth 50m data on its first run and expects Montserrat SemiBold in `~/Library/Fonts`; use `--font` and `--font-italic` to point elsewhere. `build_labels.py` downloads Natural Earth 10m admin-1 on its first run.
 
 ## Notes
 
-- The map is now dependent on external CARTO tiles; the old local relief basemap and its rendering scripts have been removed.
-- The relief hillshade is disabled in the GitHub preview because of the AWS CORS restriction. The vector basemap is still crisp at every zoom.
-- The CARTO road network is more prominent than in the old custom basemap; the palette is adapted through MapLibre paint properties.
-- If CARTO is unavailable, the map has no local fallback. For production, decide whether to add one or host/self-style vector tiles.
-- To restore relief on GitHub Pages, add a local transparent hillshade overlay or self-host DEM tiles; the direct AWS terrarium URL will keep failing CORS.
+- The map depends on external CARTO vector tiles and ArcGIS hillshade tiles; the old local relief basemap and its rendering scripts have been removed.
+- Roads are intentionally light, following the Le Monde reference. Their hierarchy comes from width and casing rather than dark colour.
+- If CARTO or the hillshade service is unavailable, the map still renders the vector base without relief. For production, evaluate self-hosting both tile sets.
+- The Bulgarian border and fill now come from the same simplified OSM polygon; keep `bulgaria-osm.geojson`, `bulgaria-highlight.js` and `borders.js` in sync when updating the boundary.
