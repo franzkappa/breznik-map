@@ -97,4 +97,4 @@ console.
 
 ## Ultimo aggiornamento
 
-2026-11-10 — commit del task: `a13b51a`.
+2026-11-10 — commit del task: `3dffd11`.
