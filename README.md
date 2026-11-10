@@ -115,6 +115,12 @@ python3 scripts/build_labels.py       # oblast and city labels
 next task, key files and verification commands. Update it at the end of every
 session and keep it under ~100 lines.
 
+Session workflow:
+
+- `/checkpoint` saves state in `HANDOFF.md` without committing or pushing.
+- `/handoff` updates `HANDOFF.md`, runs `./scripts/check.sh` and proposes a local commit.
+- `/publish` runs the checks, commits and pushes to `origin/main` (GitHub Pages).
+
 ## Notes
 
 - The map depends on external CARTO vector tiles and ArcGIS hillshade tiles; the old local relief basemap and its rendering scripts have been removed.
