@@ -66,6 +66,7 @@
     color:var(--muted);padding-top:10px;border-top:1px solid var(--rule);margin-bottom:7px;
   }
   .legend-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}
+  .legend-col{display:flex;flex-direction:column;gap:5px}
   .legend-row{display:flex;align-items:center;gap:6px;font-size:9.2px;line-height:1.2;color:var(--ink-soft)}
   .key-dot,.key-line{flex:0 0 auto;display:inline-block}
   .key-dot{width:9px;height:9px;border-radius:50%;background:var(--navy);box-shadow:0 0 0 2px #fff,0 1px 3px rgba(20,25,24,.22)}
@@ -267,67 +268,6 @@
   .loader .bar{position:absolute;width:60px;height:2px;background:var(--teal);animation:load 1s ease-in-out infinite}
   @keyframes load{0%{transform:translateX(-60px)}100%{transform:translateX(60px)}}
 
-  @media(max-width:760px){
-    .panel{
-      width:min(320px,calc(100vw - 16px));left:8px;top:8px;padding:14px 14px 11px;
-      max-height:calc(100% - 120px);
-    }
-    .panel h1{font-size:26px}
-    .deck{font-size:11.5px;line-height:1.45}
-    .legend-title{font-size:8.5px}
-    .legend-row{font-size:10.5px}
-    .panel-source{font-size:8.5px}
-    .panel-toggle{width:30px;height:30px;font-size:18px}
-    .panel.collapsed{padding:12px 40px 12px 13px}
-    .panel.collapsed .eyebrow{font-size:8.5px;letter-spacing:.14em}
-    .brand.obct img{height:22px}
-    .brand.ciji img{height:20px}
-    .brands{gap:5px;top:8px;right:8px}
-    .brand{padding:5px 6px}
-    .locator{width:168px;bottom:calc(86px + env(safe-area-inset-bottom,0px));right:8px}
-    .attrib{font-size:7.5px;max-width:62%;white-space:normal;text-align:center;bottom:env(safe-area-inset-bottom,0px)}
-    .maplibregl-ctrl-top-right{top:64px;right:8px}
-    .maplibregl-ctrl-group button{width:36px!important;height:36px!important}
-    .maplibregl-ctrl-group button svg{width:20px;height:20px}
-  }
-  @media(max-width:520px){
-    .panel{width:calc(100vw - 16px);max-width:310px;left:8px;top:8px;padding:13px 13px 10px}
-    .panel h1{font-size:24px}
-    .legend-grid{gap:5px 8px}
-    .legend-row{font-size:10px}
-    .deck{font-size:11px;line-height:1.42}
-    .panel-source{font-size:8px}
-    .panel.collapsed{width:auto;padding:11px 40px 11px 12px}
-    .panel.collapsed .eyebrow{font-size:8px;white-space:normal;line-height:1.25}
-    .brands{
-      left:8px;right:auto;top:auto;bottom:calc(82px + env(safe-area-inset-bottom,0px));
-      flex-direction:row;align-items:flex-start;gap:4px;
-    }
-    .brand.obct img{height:18px}
-    .brand.ciji img{height:16px}
-    .brand{padding:4px 5px}
-    .locator{width:142px;bottom:calc(86px + env(safe-area-inset-bottom,0px));right:8px}
-    .attrib{
-      display:block;left:8px;right:8px;bottom:env(safe-area-inset-bottom,0px);transform:none;
-      font-size:6.8px;line-height:1.2;max-width:none;white-space:normal;text-align:center;padding:0;
-    }
-    .maplibregl-ctrl-scale{display:none}
-    .maplibregl-ctrl-top-right{top:60px;right:8px}
-    .tour-home{width:46px;padding:0}
-    .tour-home-label{display:none}
-    .popup{padding:14px 14px 15px}
-    .popup h3{font-size:22px}
-    .popup p{font-size:12px;line-height:1.48}
-    .maplibregl-popup-close-button{width:32px;height:32px;font-size:24px;padding:2px 6px}
-  }
-  @media(max-height:520px){
-    .locator{width:160px;bottom:calc(76px + env(safe-area-inset-bottom,0px));right:8px}
-    .panel{max-height:calc(100% - 96px)}
-    .panel.collapsed{padding-top:9px;padding-bottom:9px}
-    .tour{bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-    .attrib{bottom:env(safe-area-inset-bottom,0px)}
-  }
-
   /* ---------------------------------------------------------- MapLibre */
   .maplibregl-map{font-family:var(--sans);background:var(--paper);outline:none}
   .maplibregl-canvas{outline:none}
@@ -416,6 +356,89 @@
   }
   .pin-wrap.is-tour .pin{box-shadow:0 0 0 4px rgba(242,107,33,.34),0 1px 5px rgba(20,25,24,.42)}
 
+  /* ------------------------------------------------------- responsive UI */
+  @media(max-width:760px){
+    .panel{
+      width:min(320px,calc(100vw - 16px));left:8px;top:8px;padding:14px 14px 11px;
+      max-height:calc(100% - 120px);
+    }
+    .panel h1{font-size:26px}
+    .deck{font-size:11.5px;line-height:1.45}
+    .legend-title{font-size:8.5px}
+    .legend-row{font-size:10.5px}
+    .panel-source{font-size:8.5px}
+    .panel-toggle{
+      width:26px;height:26px;top:5px;right:5px;padding:0;font-size:15px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .panel-toggle .chev{line-height:1}
+    .panel.collapsed{padding:11px 38px 11px 13px;min-height:38px}
+    .panel.collapsed .eyebrow{font-size:8.5px;letter-spacing:.14em}
+    .brand.obct img{height:22px}
+    .brand.ciji img{height:20px}
+    .brands{gap:5px;top:8px;right:8px}
+    .brand{padding:5px 6px}
+    .locator{width:168px;bottom:calc(86px + env(safe-area-inset-bottom,0px));right:8px}
+    .attrib{font-size:7.5px;max-width:62%;white-space:normal;text-align:center;bottom:env(safe-area-inset-bottom,0px)}
+    .maplibregl-ctrl-top-right{top:64px;right:8px}
+    .maplibregl-ctrl-group button{width:36px!important;height:36px!important}
+    .maplibregl-ctrl-group button svg{width:20px;height:20px}
+  }
+  @media(max-width:520px){
+    .panel{width:calc(100vw - 16px);max-width:310px;left:8px;top:8px;padding:13px 13px 10px}
+    .panel h1{font-size:24px}
+    .legend-grid{gap:5px 8px}
+    .legend-row{font-size:10px}
+    .deck{font-size:11px;line-height:1.42}
+    .panel-source{font-size:8px}
+    .panel.collapsed{width:auto;padding:11px 38px 11px 12px;min-height:38px}
+    .panel.collapsed .eyebrow{font-size:8px;white-space:normal;line-height:1.25}
+    .brands{
+      left:8px;right:auto;top:auto;
+      bottom:calc(20px + env(safe-area-inset-bottom,0px));
+      height:50px;flex-direction:row;align-items:center;gap:3px;
+    }
+    .brand.obct img{height:16px}
+    .brand.ciji img{height:14px}
+    .brand{padding:3px 4px}
+    .locator{width:142px;bottom:calc(86px + env(safe-area-inset-bottom,0px));right:8px}
+    .attrib{
+      display:block;left:8px;right:8px;bottom:env(safe-area-inset-bottom,0px);transform:none;
+      font-size:6.8px;line-height:1.2;max-width:none;white-space:normal;text-align:center;padding:0;
+    }
+    .maplibregl-ctrl-scale{display:none}
+    .maplibregl-ctrl-top-right{top:60px;right:8px}
+    .tour{left:auto;right:8px;transform:none}
+    .tour-label{display:none}
+    .tour-btn{width:44px}
+    .tour-count{min-width:52px}
+    .tour-home{width:44px;padding:0}
+    .tour-home-label{display:none}
+    .popup{padding:14px 14px 15px}
+    .popup h3{font-size:22px}
+    .popup p{font-size:12px;line-height:1.48}
+    .maplibregl-popup-close-button{width:32px;height:32px;font-size:24px;padding:2px 6px}
+  }
+  @media(max-height:520px){
+    .locator{width:160px;bottom:calc(76px + env(safe-area-inset-bottom,0px));right:8px}
+    .panel{max-height:calc(100% - 96px)}
+    .panel.collapsed{padding-top:9px;padding-bottom:9px;min-height:36px}
+    .brands{
+      left:8px;right:auto;top:auto;bottom:calc(8px + env(safe-area-inset-bottom,0px));
+      height:50px;flex-direction:row;align-items:center;gap:3px;
+    }
+    .brand.obct img{height:16px}
+    .brand.ciji img{height:14px}
+    .brand{padding:3px 4px}
+    .tour{left:auto;right:8px;transform:none;bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+    .tour-label{display:none}
+    .tour-btn{width:44px}
+    .tour-count{min-width:52px}
+    .tour-home{width:44px;padding:0}
+    .tour-home-label{display:none}
+    .attrib{bottom:env(safe-area-inset-bottom,0px)}
+  }
+
 </style>
 </head>
 <body>
@@ -428,12 +451,16 @@
   <p class="deck" data-i18n="deck">A map of the places named in the investigation: the town, its reservoir, the mine on Bardo Hill, and the wider geography of Bulgaria’s water crisis.</p>
   <div class="legend-title" data-i18n="legendTitle">Key</div>
   <div class="legend-grid">
-    <div class="legend-row"><span class="key-dot"></span><span data-i18n="kTown">Town</span></div>
-    <div class="legend-row"><span class="key-dot water"></span><span data-i18n="kWater">Water</span></div>
-    <div class="legend-row"><span class="key-dot mine"></span><span data-i18n="kMine">Mine</span></div>
-    <div class="legend-row"><span class="key-line"></span><span data-i18n="kRoad">Roads</span></div>
-    <div class="legend-row"><span class="key-line river"></span><span data-i18n="kRiver">Rivers</span></div>
-    <div class="legend-row"><span class="key-line border"></span><span data-i18n="kBorder">Borders</span></div>
+    <div class="legend-col">
+      <div class="legend-row"><span class="key-dot"></span><span data-i18n="kTown">Town</span></div>
+      <div class="legend-row"><span class="key-dot water"></span><span data-i18n="kWater">Water</span></div>
+      <div class="legend-row"><span class="key-dot mine"></span><span data-i18n="kMine">Mine</span></div>
+    </div>
+    <div class="legend-col">
+      <div class="legend-row"><span class="key-line"></span><span data-i18n="kRoad">Roads</span></div>
+      <div class="legend-row"><span class="key-line river"></span><span data-i18n="kRiver">Rivers</span></div>
+      <div class="legend-row"><span class="key-line border"></span><span data-i18n="kBorder">Borders</span></div>
+    </div>
   </div>
   <div class="panel-source" data-i18n="source">Basemap and country shapes: © CARTO · © OpenStreetMap contributors · Hillshade: Esri, USGS, NGA, NASA and contributors · Locator: Natural Earth</div>
 </aside>
@@ -681,7 +708,7 @@ function popupHTML(p){
 <script src="assets/borders.js?v=20261110-6"></script>
 <script src="assets/place-labels.js?v=20261110-2"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script src="map.js?v=20261110-12"></script>
+<script src="map.js?v=20261110-17"></script>
 <script src="tour.js?v=20261110-7"></script>
 </body>
 </html>

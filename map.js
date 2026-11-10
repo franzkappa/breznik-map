@@ -437,6 +437,42 @@ function updateZoomClasses() {
   document.body.classList.toggle('zoom-labels', map.getZoom() >= state.baseZoom + 0.7);
 }
 
+function ensurePopupVisible(popup) {
+  // Direct pin taps on a phone can put a popup half outside the viewport.
+  // Nudge the map just enough to bring the whole popup back into view,
+  // keeping it above the tour bar.
+  if (window.innerWidth > 760 && window.innerHeight > 520) return;
+  const el = popup.getElement();
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  if (!rect.width || !rect.height) return;
+
+  const margin = 10;
+  const panelEl = document.querySelector('.panel');
+  const panelRect = panelEl ? panelEl.getBoundingClientRect() : null;
+  let topLimit = panelRect && panelEl.classList.contains('collapsed') && panelRect.top < 60
+    ? Math.min(panelRect.bottom + 8, window.innerHeight * .4)
+    : margin;
+  const tour = document.querySelector('.tour');
+  const bottomLimit = Math.min(
+    window.innerHeight - margin,
+    tour ? tour.getBoundingClientRect().top - 8 : window.innerHeight - margin
+  );
+  if (rect.height > bottomLimit - topLimit) topLimit = margin;
+
+  let dx = 0;
+  let dy = 0;
+  if (rect.left < margin) dx = margin - rect.left;
+  else if (rect.right > window.innerWidth - margin) {
+    dx = (window.innerWidth - margin) - rect.right;
+  }
+  if (rect.top < topLimit) dy = topLimit - rect.top;
+  else if (rect.bottom > bottomLimit) dy = bottomLimit - rect.bottom;
+
+  if (!dx && !dy) return;
+  map.panBy([-dx, -dy], { duration: 420 });
+}
+
 function openPopup(p) {
   if (currentPopup) currentPopup.remove();
 
@@ -463,6 +499,20 @@ function openPopup(p) {
       state.open = null;
     }
   });
+
+  window.setTimeout(() => ensurePopupVisible(popup), 90);
+  let fitAttempts = 0;
+  const fitPopup = () => {
+    if (currentPopup !== popup) return;
+    const el = popup.getElement();
+    const rect = el ? el.getBoundingClientRect() : null;
+    if ((!rect || !rect.width || !rect.height) && fitAttempts++ < 8) {
+      window.setTimeout(fitPopup, 70);
+      return;
+    }
+    ensurePopupVisible(popup);
+  };
+  window.setTimeout(fitPopup, 220);
 
   // wait for MapLibre to place the popup before checking the legend
   window.setTimeout(() => {

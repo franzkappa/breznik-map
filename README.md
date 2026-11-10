@@ -36,12 +36,12 @@ The visual treatment in `map.js` follows the Le Monde reference: paper backgroun
 - **Hillshade relief** in transparency across the whole frame, with the Rhodopes, Pirin, Stara Planina and the Danube plain clearly readable.
 - **Administrative region labels** for the Bulgarian oblasts, plus a quiet layer of larger secondary cities. The story labels remain the strongest typography.
 - **Locator inset** at bottom right: Bulgaria in the Balkans, with an orange rectangle that updates while the map is panned and zoomed. Clicking the inset recentres the map.
-- **Legend inside the map**, in a semi-transparent panel at top left, with a short explanation and a key for the point and line symbols used on the map.
+- **Legend inside the map**, in a semi-transparent panel at top left, with a short explanation and a key for the point and line symbols used on the map. Points sit in the left column and lines in the right one.
 - **Guided tour bar** at the bottom centre: previous/next buttons move through the nine story stops and open the matching popup; a dedicated **Overview** button returns to the general view.
-- **Popups** with the article’s key facts. The Breznik popup groups the very local places — Bardo Hill, Milin Kamak, the Konska and the Bardo spring — because at the national scale they would otherwise sit on top of each other. If a popup would overlap the legend, the legend minimises automatically so the popup stays readable.
+- **Popups** with the article’s key facts. The Breznik popup groups the very local places — Bardo Hill, Milin Kamak, the Konska and the Bardo spring — because at the national scale they would otherwise sit on top of each other. If a popup would overlap the legend, the legend minimises automatically so the popup stays readable. On phones, a direct tap on a pin nudges the map so the whole popup stays on screen and above the tour bar.
 - **English only** for now; a separate Italian version can be produced later.
 - In short iframes (height below 680 px) or narrow ones (width below 760 px) the legend starts collapsed to a single bar with the line “Bulgaria • Water and democracy”; the **+** button expands it.
-- **Phone layout**: the tour bar uses 44 px touch targets, the locator and the partner logos move above it, the legend can be opened without covering the whole screen, popups shrink to the viewport and scroll when a short landscape viewport would clip them. Safe-area insets are respected.
+- **Phone layout**: the “Tour” word is dropped to shorten the bar, the partner logos sit on the same bottom line on the left, the locator sits above it, the legend can be opened without covering the whole screen, and popups shrink to the viewport and scroll when a short landscape viewport would clip them. Safe-area insets are respected.
 - Map labels carry only the place name, without a second descriptive line.
 
 ## Guided tour
