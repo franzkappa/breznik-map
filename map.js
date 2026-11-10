@@ -62,7 +62,25 @@ function applyEditorialStyle() {
   // element. The line is kept above the country fill and hillshade but below
   // the water fills, so it never shows through across a lake.
   setP('waterway', 'line-color', '#cfe4e6');
-  setP('waterway', 'line-width', ['interpolate', ['linear'], ['zoom'], 5, 1, 9, 1.4, 12, 1.9, 14, 2.4]);
+  // One width for every watercourse made the big rivers too faint and the
+  // small ones too heavy. The width is now a zoom ramp whose stops carry a
+  // factor that follows the OSM waterway class: rivers gain a little weight,
+  // canals sit just below them, and streams, drains and ditches — the latter
+  // two only drawn from z13 — stay thin so the map does not crowd at city
+  // zooms. MapLibre only allows one zoom expression, and it has to be the
+  // outermost one, so the class is resolved inside each stop.
+  const kinds = (river, canal, stream, ditch) => ['case',
+    ['==', ['get', 'kind'], 'river'], river,
+    ['==', ['get', 'kind'], 'canal'], canal,
+    ['in', ['get', 'kind'], ['literal', ['drain', 'ditch']]], ditch,
+    stream
+  ];
+  setP('waterway', 'line-width', ['interpolate', ['linear'], ['zoom'],
+    5, kinds(1.2, 1, .7, .5),
+    9, kinds(1.7, 1.4, 1, .65),
+    12, kinds(2.2, 1.9, 1.35, .8),
+    14, kinds(2.8, 2.4, 1.65, 1)
+  ]);
   setP('waterway', 'line-opacity', 1);
 
   map.getStyle().layers.forEach(layer => {

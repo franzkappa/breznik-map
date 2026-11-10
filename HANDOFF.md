@@ -7,25 +7,24 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 
 ## Stato attuale
 
-- Data: 2026-11-10
-- Commit di riferimento: `9249d36` (pin Town, fiumi, nomi di fiumi e laghi).
+- Data: 2026-11-10 · base di questa sessione: `84b4cb1`.
+- Working tree: `index.html` e `map.js` modificati da questa sessione;
   `README.md` resta modificato fuori dal task.
-- Working tree: vedi `git status --short`.
 - Preview: GitHub Pages con `robots.txt` noindex; repo `franzkappa/breznik-map`.
 - Locale: `python3 -m http.server 8000` → http://localhost:8000
 
 ## Cosa è cambiato in questa sessione
 
-- Pin dei POI `cat:'town'` (Breznik, Pernik, Pleven) portati a 16 px, come i
-  pin Water; i pallini delle città secondarie restano piccoli come prima.
-- Fiumi, laghi e mare hanno lo stesso colore `#cfe4e6` (fill `water` e linee
-  `waterway`). Le linee stanno sopra fill Bulgaria/hillshade ma sotto i fill
-  d'acqua, quindi non attraversano i laghi.
-- Nomi di fiumi e laghi dal basemap in corsivo (Montserrat Medium Italic) da
-  z9/z10, solo per le feature con `name:en`.
-- Cache-bust di `map.js` in `index.html` incrementato a `20261110-28`.
+- Spessore dei fiumi: il layer `waterway` non usa più una larghezza unica. La
+  rampa di zoom resta una sola, ma ogni stop risolve la classe OSM `kind`, così
+  il peso segue la rilevanza. Da z5 a z14: river 1,2→2,8 (prima 1→2,4), canal
+  1→2,4, stream 0,7→1,65, drain/ditch (da z13) 0,5→1. Fiumi ~+15%, torrenti e
+  fossi più sottili: l'affollamento cala da z12 in poi, dove tutti pesavano
+  uguale. Il colore resta `#cfe4e6`, come mare e laghi: si è agito solo sullo
+  spessore.
+- Cache-bust di `map.js` in `index.html` incrementato a `20261110-29`.
 
-Funziona:
+## Funziona (invariato in questa sessione)
 
 - MapLibre GL JS 4.7.1 + CARTO Positron, hillshade ArcGIS, confini nazionali,
   etichette oblast e città, highlight Bulgaria.
@@ -43,15 +42,17 @@ Funziona:
 ## Problemi aperti
 
 - UI solo in inglese; le label dei luoghi sono già bilingui in `PLACES`.
+- Alcune etichette fluviali escono in cirillico perché in OSM quel `name:en`
+  contiene testo cirillico: il filtro sul nome non lo intercetta.
 - I nomi di fiumi e laghi compaiono solo dove OSM ha `name:en` (per esempio
   la Konska resta senza etichetta basemap); i laghi compaiono in pratica da
   z12.
 - Le linee dei fiumi sono volutamente dello stesso colore del mare: per più
   leggibilità agire sul solo spessore, non sul colore.
-- Tile CARTO/ArcGIS esterni: valutare il self-hosting per la produzione.
+- Tile CARTO/ArcGIS esterni: valutare il self-hosting per la produzione; offline
+  possono non caricare, e allora la mappa degrada senza relief.
 - QA su device reali iOS/Android non formalizzato; embed da provare su
   balcanicaucaso.org.
-- Le tile esterne possono non caricare offline: degradare senza relief.
 - `build_map_assets.py` richiede Montserrat in `~/Library/Fonts` e scarica
   Natural Earth al primo run.
 
@@ -76,8 +77,7 @@ Vincoli:
 ## Comando di verifica
 
 `./scripts/check.sh` — sintassi Python, dipendenze, geolocalizzazione POI,
-asset richiesti e sanity check.
-Servire in locale: `python3 -m http.server 8000`.
+asset richiesti e sanity check. Ultimo esito: verde.
 
 ## File chiave
 
@@ -97,4 +97,4 @@ Servire in locale: `python3 -m http.server 8000`.
 
 ## Ultimo aggiornamento
 
-2026-11-10 — commit di riferimento `9249d36`.
+2026-11-10 — base `84b4cb1`, spessore fiumi per classe OSM.
