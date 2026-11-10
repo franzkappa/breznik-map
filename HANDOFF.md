@@ -97,4 +97,4 @@ la console.
 
 ## Ultimo aggiornamento
 
-2026-11-10 — commit del task: `<da registrare subito dopo il commit>`.
+2026-11-10 — commit del task: `ee0715f`.
