@@ -40,6 +40,20 @@ map.addControl(new maplibregl.ScaleControl({ unit: 'metric', maxWidth: 110 }), '
 
 let currentPopup = null;
 
+/* Bardo Hill, Milin Kamak and the Bardo spring sit within 3 km of Breznik. On
+   the national view that whole group covers a handful of pixels, so their pins
+   would pile up on each other. The pins therefore appear from DETAIL_ZOOM and
+   their labels only from DETAIL_LABEL_ZOOM: at 11.5 the four labels are 56–91
+   px wide and the places are 35–55 px apart, so the names of Bardo Hill and the
+   spring overlap each other and their pins. Below DETAIL_ZOOM their content
+   still lives in the Breznik popup. */
+const DETAIL_ZOOM = 11;
+const DETAIL_LABEL_ZOOM = 12;
+const detailPinEls = [];
+const detailLabelEls = [];
+let pinsShown = false;
+let labelsShown = false;
+
 /* ------------------------------------------------------------------ style */
 function setP(id, prop, value) {
   if (map.getLayer(id)) map.setPaintProperty(id, prop, value);
@@ -503,11 +517,41 @@ function addPlace(p) {
   }).setLngLat([p.coords[1], p.coords[0]]).addTo(map);
 
   markers.push({ p, marker, labelMarker, labelEl: span });
+
+  // Secondary POIs start hidden: the first updateZoomClasses() after load
+  // decides what belongs on screen at the current zoom.
+  if (p.detail) {
+    if (marker) {
+      marker.getElement().classList.add('is-off');
+      detailPinEls.push(marker.getElement());
+    }
+    wrap.classList.add('is-off');
+    detailLabelEls.push(wrap);
+  }
 }
 
 function updateZoomClasses() {
   if (!state.baseZoom) return;
-  document.body.classList.toggle('zoom-labels', map.getZoom() >= state.baseZoom + 0.7);
+  const z = map.getZoom();
+  document.body.classList.toggle('zoom-labels', z >= state.baseZoom + 0.7);
+
+  const showPins = z >= DETAIL_ZOOM;
+  if (showPins !== pinsShown) {
+    pinsShown = showPins;
+    detailPinEls.forEach(el => el.classList.toggle('is-off', !showPins));
+    // A detail popup left open while zooming out would hang over a place whose
+    // pin is gone: close it instead.
+    if (!showPins && state.open && currentPopup) {
+      const open = PLACES.find(x => x.id === state.open.id);
+      if (open && open.detail) currentPopup.remove();
+    }
+  }
+
+  const showLabels = z >= DETAIL_LABEL_ZOOM;
+  if (showLabels !== labelsShown) {
+    labelsShown = showLabels;
+    detailLabelEls.forEach(el => el.classList.toggle('is-off', !showLabels));
+  }
 }
 
 function ensurePopupVisible(popup) {
@@ -685,7 +729,8 @@ function rectsOverlap(a, b) {
 
 /* --------------------------------------------------------------------- init */
 positionDot();
-PLACES.filter(p => !p.detail).forEach(addPlace);
+// Every place gets a label; only the detail POIs are hidden until DETAIL_ZOOM.
+PLACES.forEach(addPlace);
 
 
 function applyLang() {

@@ -73,7 +73,6 @@
   .key-dot.water{background:var(--teal)}
   .key-dot.mine{background:var(--olive);border-radius:1px;transform:rotate(45deg)}
   .key-dot.justice{background:var(--orange)}
-  .key-dot.spring{background:#fff;border:2px solid var(--teal);box-shadow:none}
   .key-line{width:20px;height:0;border-top:2px solid #a8aaa3}
   .key-line.river{border-top-color:#cfe4e6;border-top-width:2px}
   .key-line.border{border-top:1px dashed #5b3d2a}
@@ -150,8 +149,6 @@
   .pin.mine{background:var(--olive);border-radius:2px;transform:rotate(45deg)}
   .pin.mine svg{transform:rotate(-45deg)}
   .pin.justice{background:var(--orange)}
-  .pin.spring{background:#fff;border-color:var(--teal);border-width:2px}
-  .pin.spring .inner{width:38%;height:38%;border-radius:50%;background:var(--teal)}
   .pin.town{background:var(--navy)}
   .pin-wrap:hover .pin{transform:scale(1.22)}
   .pin-wrap:hover .pin.mine{transform:scale(1.18) rotate(45deg)}
@@ -163,7 +160,7 @@
   .pt-name{display:block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.15}
 
   .place-tip.major .pt-name{font-size:10.5px}
-  .place-tip.water .pt-name,.place-tip.spring .pt-name{color:var(--teal-deep);letter-spacing:.08em}
+  .place-tip.water .pt-name{color:var(--teal-deep);letter-spacing:.08em}
   .place-tip.mine .pt-name{color:#6d7116;letter-spacing:.08em}
   .place-tip.feature .pt-name{font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;font-size:10.5px;letter-spacing:.02em;color:#5c5941}
   .leaflet-tooltip.zoom-label{opacity:0!important;transition:opacity .2s}
@@ -205,8 +202,6 @@
   .pin.mine{background:var(--olive);border-radius:2px;transform:rotate(45deg)}
   .pin.mine svg{transform:rotate(-45deg)}
   .pin.justice{background:var(--orange)}
-  .pin.spring{background:#fff;border-color:var(--teal);border-width:2px}
-  .pin.spring .inner{width:38%;height:38%;border-radius:50%;background:var(--teal)}
   .pin.town{background:var(--navy)}
   .pin-wrap:hover .pin{transform:scale(1.22)}
   .pin-wrap:hover .pin.mine{transform:scale(1.18) rotate(45deg)}
@@ -218,7 +213,7 @@
   .pt-name{display:block;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.15}
 
   .place-tip.major .pt-name{font-size:10.5px}
-  .place-tip.water .pt-name,.place-tip.spring .pt-name{color:var(--teal-deep);letter-spacing:.08em}
+  .place-tip.water .pt-name{color:var(--teal-deep);letter-spacing:.08em}
   .place-tip.mine .pt-name{color:#6d7116;letter-spacing:.08em}
   .place-tip.feature .pt-name{font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;font-size:10.5px;letter-spacing:.02em;color:#5c5941}
   .leaflet-tooltip.zoom-label{opacity:0!important;transition:opacity .2s}
@@ -307,7 +302,7 @@
     letter-spacing:.12em;text-transform:uppercase;line-height:1.15;color:var(--ink);
   }
   .place-label.major{font-size:10.5px}
-  .place-label.water,.place-label.spring{color:var(--teal-deep);letter-spacing:.08em}
+  .place-label.water{color:var(--teal-deep);letter-spacing:.08em}
   .place-label.mine{color:#6d7116;letter-spacing:.08em}
   .place-label.feature{
     font-family:var(--serif);font-weight:400;font-style:italic;text-transform:none;
@@ -315,6 +310,10 @@
   }
   .place-label-wrap.zoom-label{display:none}
   body.zoom-labels .place-label-wrap.zoom-label{display:block}
+  /* Secondary POIs around Breznik (Bardo Hill, Milin Kamak, Bardo spring) stay
+     off screen until map.js marks them visible: pins from DETAIL_ZOOM, labels
+     from DETAIL_LABEL_ZOOM. */
+  .pin-wrap.is-off,.place-label-wrap.is-off{display:none!important}
 
   /* ------------------------------------------------------------ tour bar */
   .tour{
@@ -507,10 +506,9 @@ const IMAGE_BOUNDS = [[40.0, 20.0], [46.0, 30.0]];
 const VIEW_BOUNDS = [[41.20, 21.35], [44.50, 28.05]];
 const LOC_BOUNDS = [[38.0, 18.0], [46.5, 30.5]];
 
-const COLORS = { town:'#171846', water:'#008aad', mine:'#8f9422', justice:'#f26b21', spring:'#008aad' };
+const COLORS = { town:'#171846', water:'#008aad', mine:'#8f9422', justice:'#f26b21' };
 const GLYPHS = {
   water:'',
-  spring:'<span class="inner"></span>',
   mine:'',
   town:''
 };
@@ -571,7 +569,7 @@ const PLACES = [
     }
   },
   {
-    id:'spring', cat:'spring', coords:[42.7313343,22.9028954], size:14, dir:'right', off:[10,-10], detail:true,
+    id:'spring', cat:'water', coords:[42.7313343,22.9028954], size:14, dir:'left', off:[10,-10], detail:true,
     label:{ en:{name:'Bardo spring',sub:''}, it:{name:'Sorgente del Bardo',sub:''} },
     kicker:{en:'Arsenic in the spring',it:'Arsenico nella sorgente'}, title:{en:'Bardo mineral spring',it:'Sorgente minerale del Bardo'},
     stat:{en:'Arsenic detected',it:'Arsenico rilevato'},
@@ -708,7 +706,7 @@ function popupHTML(p){
 <script src="assets/borders.js?v=20261110-6"></script>
 <script src="assets/place-labels.js?v=20261110-2"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script src="map.js?v=20261110-29"></script>
-<script src="tour.js?v=20261110-7"></script>
+<script src="map.js?v=20261110-31"></script>
+<script src="tour.js?v=20261110-8"></script>
 </body>
 </html>

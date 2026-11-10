@@ -6,12 +6,16 @@
 (function () {
   'use strict';
 
-  // Story order and the zoom each stop deserves. Only places that are shown
-  // as pins on the map and have popup content are included. The zoom values
-  // are deliberately close-in: each stop should read as a place, not as a
-  // point in a national map.
+  // Story order and the zoom each stop deserves. The three detail POIs around
+  // Breznik (Bardo Hill, Milin Kamak, Bardo spring) come right after the town:
+  // they are only drawn past DETAIL_ZOOM, so their stops must zoom in beyond
+  // it. The zoom values are deliberately close-in: each stop should read as a
+  // place, not as a point in a national map.
   const STOPS = [
     { id: 'breznik', zoom: 12.4 },
+    { id: 'bardo', zoom: 13.4 },
+    { id: 'milin', zoom: 13.4 },
+    { id: 'spring', zoom: 13.4 },
     { id: 'krassava', zoom: 13.0 },
     { id: 'konska', zoom: 12.2 },
     { id: 'pernik', zoom: 10.8 },
