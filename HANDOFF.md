@@ -9,16 +9,24 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 
 - Data: 2026-11-10.
 - Working tree: pulito; il lavoro della sessione è nei commit `da8d0d4` e
-  successivi.
+  successivi, più la riscrittura del testo del POI Breznik (commit locale, non
+  pubblicato).
 - Repo `franzkappa/breznik-map`, preview GitHub Pages con `robots.txt` noindex.
 - Locale: `python3 -m http.server 8000` → http://localhost:8000
 
 ## Cosa è cambiato
 
+- **Testo del POI Breznik riscritto** (solo `index.html`, dati `PLACES`):
+  sottotitolo `3,393 residents` / `3.393 abitanti` (era 5,426), `body` nuovo in
+  inglese e italiano (50 km da Sofia, razionamento dal 18 novembre 2024
+  all'aprile 2026, contaminazione estate 2025) e **rimosso il campo `note`**
+  con il riquadro "Around Breznik". Kicker e titolo invariati. Nessuna modifica a
+  `map.js`/`tour.js`, quindi cache-bust invariato.
 - **POI secondari con due soglie.** Colle Bardo, Milin Kamak e sorgente del
   Bardo hanno pin ed etichetta propri: pin da `DETAIL_ZOOM = 11`, etichette da
-  `DETAIL_LABEL_ZOOM = 12` (`map.js`). Sotto z11 restano nascosti e il loro
-  testo vive nel campo `note` del popup di Breznik. Soglie misurate: a z11.5 le
+  `DETAIL_LABEL_ZOOM = 12` (`map.js`). Sotto z11 restano nascosti e non c'è più
+  un riquadro nel popup di Breznik che li spieghi (il vecchio `note` è stato
+  rimosso con la riscrittura del testo). Soglie misurate: a z11.5 le
   etichette (56–91 px) si sovrappongono ai pin, distanti 35–55 px; i soli pin
   non si toccano già a z10.5. Il popup di un POI secondario si chiude sotto z11.
 - **Tour a 12 tappe**: Breznik → colle Bardo → Milin Kamak → sorgente → Krassava
@@ -41,7 +49,9 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 - UI solo in inglese: `I18N` ha il solo blocco `en` e `state.lang` è fisso;
   label e popup sono già bilingui in `PLACES`.
 - Fra z11 e z12 i POI secondari sono senza nome (pallini non etichettati):
-  scelta voluta, non un bug.
+  scelta voluta, non un bug. Da quando il `note` di Breznik è stato rimosso,
+  sotto z11 non c'è più alcun testo che li elenchi: se serve, reintrodurre un
+  riquadro breve o un'etichetta di riepilogo.
 - Le soglie dipendono dalla larghezza fissa delle etichette: se cambiano i
   testi, ricontrollare le sovrapposizioni a z12.
 - Alcune etichette fluviali escono in cirillico perché in OSM quel `name:en`
@@ -94,5 +104,7 @@ Non valida la sintassi JS: dopo aver toccato i testi, ricaricare e guardare la c
 
 ## Ultimo aggiornamento
 
-2026-11-10 — POI secondari a zoom progressivo, tour a 12 tappe. Partenza da
-`3f527e9`; commit del task: `da8d0d4`.
+2026-11-10 — testo del POI Breznik riscritto (3.393 abitanti, razionamento
+2024–2026, contaminazione 2025) e rimosso il campo `note` "Around Breznik".
+Partenza da `3f527e9`; commit precedenti: `da8d0d4`; commit del task: vedi
+`git log`.
