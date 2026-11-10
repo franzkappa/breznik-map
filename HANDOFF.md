@@ -97,4 +97,4 @@ Non valida la sintassi JS: dopo aver toccato i testi, ricaricare e guardare la c
 ## Ultimo aggiornamento
 
 2026-11-10 — POI secondari a zoom progressivo, tour a 12 tappe. Partenza da
-`3f527e9`; hash del commit del task nel commit successivo.
+`3f527e9`; commit del task: `da8d0d4`.
