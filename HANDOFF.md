@@ -7,9 +7,8 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 
 ## Stato attuale
 
-- Data: 2026-11-10 · base di questa sessione: `84b4cb1`.
-- Working tree: `index.html` e `map.js` modificati da questa sessione;
-  `README.md` resta modificato fuori dal task.
+- Data: 2026-11-10 · sessione chiusa su `71f5a58` (spessore fiumi).
+- Working tree: pulito, tranne `README.md`, modificato fuori dal task.
 - Preview: GitHub Pages con `robots.txt` noindex; repo `franzkappa/breznik-map`.
 - Locale: `python3 -m http.server 8000` → http://localhost:8000
 
@@ -97,4 +96,4 @@ asset richiesti e sanity check. Ultimo esito: verde.
 
 ## Ultimo aggiornamento
 
-2026-11-10 — base `84b4cb1`, spessore fiumi per classe OSM.
+2026-11-10 — sessione chiusa su `71f5a58`, spessore fiumi per classe OSM.
