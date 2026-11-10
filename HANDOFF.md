@@ -8,8 +8,8 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 ## Stato attuale
 
 - Data: 2026-11-10
-- Commit di riferimento: `3adc3a4`; le modifiche di questa sessione sono nel
-  working tree (`HANDOFF.md`, `index.html`, `map.js`), non ancora committate.
+- Commit di riferimento: `9249d36` (pin Town, fiumi, nomi di fiumi e laghi).
+  `README.md` resta modificato fuori dal task.
 - Working tree: vedi `git status --short`.
 - Preview: GitHub Pages con `robots.txt` noindex; repo `franzkappa/breznik-map`.
 - Locale: `python3 -m http.server 8000` → http://localhost:8000
@@ -97,4 +97,4 @@ Servire in locale: `python3 -m http.server 8000`.
 
 ## Ultimo aggiornamento
 
-2026-11-10 — commit di riferimento `3adc3a4`.
+2026-11-10 — commit di riferimento `9249d36`.
