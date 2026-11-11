@@ -3,136 +3,88 @@
 ## Obiettivo
 
 Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
-"Democracy Running Dry", da embeddare in un articolo tramite iframe.
+"Democracy Running Dry", da embeddare tramite iframe.
 
-## Stato attuale
+## Stato attuale (2026-11-11)
 
-- Data: 2026-11-11. Base: commit `06aa10c`; pubblicato su `origin/main`.
-- Working tree: solo `index.html` modificato (cifra abitanti di Breznik);
-  tutto il resto è già su `origin/main`.
-- Repo `franzkappa/breznik-map`, preview GitHub Pages con `robots.txt` noindex;
-  in locale `python3 -m http.server 8000` → http://localhost:8000
+- Base pubblicata: commit `895ad2e` su `origin/main`; le modifiche di questo
+  task sono ancora da committare.
+- Working tree: `map.js`, `index.html`, `HANDOFF.md`.
+- `screenshot-nomi-fiumi-illeggibili/` è materiale utente non tracciato: va
+  lasciato fuori dai commit.
+- Repo `franzkappa/breznik-map`; preview GitHub Pages con `robots.txt` noindex.
+- In locale: `python3 -m http.server 8000` → http://localhost:8000
 
 ## Cosa è cambiato
 
-Ripristinata la cifra degli abitanti di Breznik nel popup e nella label.
-
-- **`index.html`** (`PLACES`, voce `breznik`): `stat` e `label.sub` tornano a
-  `5,426 residents` / `5.426 abitanti`. La revisione del copy in `ae07874` li
-  aveva portati a 3.393; su richiesta si ripristina il valore originale.
-  Nessun cambio di cache-bust: il testo è inline in `index.html`, non in `map.js`.
-- Verifica a runtime (http://localhost:8000): clic sul pin Breznik → popup con
-  "5,426 residents"; label del pin aggiornata; console senza errori né warning.
-  `./scripts/check.sh`: **ALL CHECKS PASS**.
-
-## Lavoro precedente (già pubblicato)
-
-Nomi di fiumi e laghi in latino, senza dipendere da `name:en` del basemap.
-
-- **`scripts/build_water_names.py`**: interroga Overpass (Bulgaria + 30 km),
-  costruisce `window.WATER_NAMES = {rivers, lakes, suppressed}`. Usa `name:en`
-  se latino, altrimenti translitterazione ufficiale bulgara (Streamlined
-  System) con override per i nomi dell'articolo e le grafie inglesi
-  consolidate (Konska, Krassava, Danube, Struma, Maritsa, Nisava…). I nomi in
-  cirillico serbo/macedone non romanizzabili finiscono in `suppressed` e non
-  vengono mostrati (niente cirillico sulla mappa).
-- **`assets/water-names.js`**: 748 nomi di fiumi, 752 di laghi, 49 soppressi,
-  62 KB (19.5 KB gzip).
-- **`map.js`**: `waterNameField()` costruisce una `match` sul `name`; i layer
-  basemap `waterway_label` e `watername_lake` ricevono il nome latino. Filtri:
-  `has name` + `kind == river` (o lake/water/reservoir) + lista soppressi.
-  Aggiunti `text-max-angle: 120` e `symbol-spacing` interpolato (160 a z9,
-  600 a z12, 750 a z13.4): senza, le etichette sui fiumi di montagna venivano
-  quasi tutte scartate; lo spacing evita 3–4 ripetizioni dello stesso nome.
-  I fiumi sono etichettati da z9 (sotto z9 CARTO non disegna linee d'acqua),
-  i laghi da z10 ma CARTO genera i punti-nome dei laghi solo verso z13.
-- **`index.html`**: script `assets/water-names.js?v=20261110-1`; cache-bust
-  `map.js?v=20261110-32`. `tour.js` invariato.
-- **`check.sh`**: nuovo script nella sintassi Python e nuovo asset nei file
-  richiesti.
-- Verifica a runtime (http://localhost:8000): console senza errori; a z9.5
-  compaiono Maritsa, Stryama, Vacha…; a z12 Breznik ha Turska reka + Konska;
-  a z13.4 Selska reka + Konska; laghi OK ("Lake Mandrensko"); embed a 390 px
-  leggibile. Profilo CPU senza hotspot (la `match` è valutata nei worker).
-
-## Riferimenti invariati
-
-- POI secondari (colle Bardo, Milin Kamak, sorgente): pin da `DETAIL_ZOOM = 11`,
-  etichette da `DETAIL_LABEL_ZOOM = 12`, popup chiuso sotto z11.
-- 12 pin; Sofia solo etichetta, senza pin né popup. Sorgente del Bardo
-  `cat:'water'`, pin pieno teal. Tour a 11 tappe; colle Bardo POI non-tappa.
+- **Nomi dei fiumi** (`map.js`): il layer CARTO `waterway_label`
+  (`symbol-placement: line`, glifi piegati lungo le anse) è nascosto e
+  sostituito dal source `river-labels` + layer `river-name-labels`.
+- `refreshRiverLabels()` gira su `idle`: legge le linee già caricate dal
+  basemap, le raggruppa per `name`, scarta `WATER_NAMES.suppressed` e sceglie
+  per ogni fiume il tratto più retto lungo almeno quanto la parola. L'ancora è
+  il centro del tratto, il bearing è l'angolo della corda.
+- Layer `symbol-placement: point` con `text-rotate: ['get','bearing']` e
+  `text-rotation-alignment: map`: la parola resta dritta ma orientata lungo la
+  valle; `text-offset: [0,-.45]`, una etichetta per nome.
+- Alias OSM vicini ("Стряма"/"река Стряма") deduplicati entro 140 px (resta il
+  nome più corto); `text-padding: 0` evita collisioni tra etichette adiacenti.
+- `RIVER_LABEL_MIN_ZOOM = 9`; sotto soglia il source viene svuotato.
+- Cache-bust `map.js?v=20261111-34`.
+- Verificato con Playwright: z9.4 (52 etichette dritte), Breznik 11.5/12.4,
+  Stryama 11.8/12.9, z13.4, mobile 390 px; console pulita; `check.sh` verde.
 
 ## Prossimo task
 
-1. Versione italiana della UI (non solo le label dei luoghi).
-   - Accettazione: testi di UI, legenda, tour e popup in italiano; switch o build
-     separata; nessuna regressione desktop/mobile; `check.sh` verde; console del
-     browser senza errori.
+Rifinire densità e posizionamento delle etichette se la redazione lo chiede
+(vedi problemi aperti), oppure passare alla QA embed.
+
+Criteri di accettazione:
+
+- una parola unica e dritta, orientata al tratto più retto del fiume, tra z9 e
+  z13.4;
+- nessun duplicato evidente e nessuna sovrapposizione con pin o altri nomi;
+- nessuna regressione desktop/mobile (390 px);
+- console senza errori/warning e `check.sh` verde.
 
 ## Problemi aperti
 
-- `PLACES` ha già label e popup bilingui, ma `I18N` ha il solo blocco `en` e
-  `state.lang` è fisso.
-- Cifra abitanti di Breznik: in questo file compare `5,426` (valore corrente);
-  il commit `ae07874` l'aveva portata a `3,393`. Prima di un'altra modifica
-  verificare il dato con la redazione, per non alternare le due cifre.
-- I nomi traslitterati non sono stati riletti da un madrelingua: controllare in
-  particolare le voci fuori dall'area di Breznik (es. `Селския Дол` →
-  "Selskia Dol", dove l'ufficiale darebbe "Selskiya dol"). Le voci in
-  `WATER_NAMES` sono generate: per correggerne una, aggiungere un override in
-  `build_water_names.py` e rigenerare.
-- Con `symbol-spacing` interpolato, a z9 alcune etichette possono comparire due
-  volte sulla stessa asta fluviale (segmenti tagliati dai tile): è accettato.
-- I ruscelli (`stream`) non sono etichettati: CARTO li disegna solo da z13 e
-  resterebbero senza linea sotto. Se servono i tributari minori della Konska,
-  valutare l'overlay GeoJSON (opzione B).
-- I laghi hanno nome solo se CARTO genera il punto-nome (in pratica da z13); il
-  bacino di Krassava è coperto dalla label del pin.
-- Fiumi e laghi hanno nome solo dove OSM ha `name`; le etichette dipendono dai
-  tile CARTO esterni (nessun self-hosting).
-- `build_water_names.py` richiede Overpass: due query separate (quella unica
-  risponde 502), cache in `/tmp`, retry sul mirror kumi.
-- `build_map_assets.py` richiede Montserrat in `~/Library/Fonts` e scarica
-  Natural Earth al primo run.
+- Densità: a z9.4 circa 50 etichette visibili; valutare con la redazione.
+- Le parole lunghe vicine al bordo vengono tagliate (`symbol-avoid-edges` non
+  aiuta: vale per i bordi tile, non per il canvas).
+- L'ancora dipende dal centro del viewport: piccoli salti di posizione quando
+  si panna su fiumi con più tratti retti equivalenti.
+- Il bearing dipende dal source/layer CARTO (fallback su `waterway`): da
+  ricontrollare se il basemap cambia.
+- Alias con nomi molto diversi per lo stesso fiume non vengono deduplicati.
+- Cifra abitanti Breznik: `5,426` nel file, `3,393` in `ae07874`; verificare
+  con la redazione prima di cambiarla.
+- UI italiana non ancora fatta: `I18N` ha solo `en` e `state.lang` è fisso.
+- Nomi traslitterati non riletti da un madrelingua (es. "Selskia Dol").
+- Ruscelli (`stream`) non etichettati; laghi solo dove CARTO genera il punto-nome.
+- `build_water_names.py` richiede Overpass; `build_map_assets.py` richiede
+  Montserrat e Natural Earth.
 - QA iOS/Android non formalizzata; embed da provare su balcanicaucaso.org.
 
 ## Cosa non toccare
 
-- `assets/*.js`, `assets/*.geojson` a mano (si rigenerano con gli script);
-  `vendor/` (MapLibre 4.7.1); attribuzioni CARTO/OSM/Esri/USGS/NASA.
+- `assets/*.js`, `assets/*.geojson`, `vendor/` a mano; attribuzioni CARTO/OSM/
+  Esri/USGS/NASA.
+- `screenshot-nomi-fiumi-illeggibili/`: materiale utente, non tracciato.
 - `.docx`, `.xlsx` e altri file CIJI senza richiesta esplicita.
-
-Vincoli:
-
-- CARTO Positron + ArcGIS hillshade; niente basemap raster locale.
-- Bulgaria fill e bordi dalla stessa geometria OSM semplificata.
-- Sofia è solo etichetta, senza pin/popup. Nessuna dipendenza runtime oltre
-  MapLibre. Label bilingui in `PLACES`; la UI è separata.
-- I pallini delle città restano piccoli: non sono i pin dei POI Town.
-- Incrementare il cache-bust di `map.js` (e di `tour.js` se cambia).
+- Vincoli: CARTO Positron + ArcGIS hillshade; Sofia solo etichetta; pin
+  secondari da `DETAIL_ZOOM = 11`, label da `DETAIL_LABEL_ZOOM = 12`.
+- Incrementare il cache-bust di `map.js` (e `tour.js` se cambia).
 
 ## Comando di verifica
 
-`./scripts/check.sh` — sintassi Python, dipendenze, geolocalizzazione dei 13 POI,
-locator, asset richiesti e sanity check. Ultimo esito: **ALL CHECKS PASS**. Non
-valida la sintassi JS: dopo aver toccato i testi, ricaricare la pagina e guardare
-la console.
+`./scripts/check.sh` — Python, dipendenze, 13 POI, locator, asset e sanity.
+Non valida il JS: ricaricare la pagina e guardare la console.
 
-## File chiave
+Esito ultima esecuzione (2026-11-11): `ALL CHECKS PASS`.
 
-- `index.html` — markup, CSS, dati `PLACES`, `I18N`, popup.
-- `map.js` — MapLibre, layer, marker, soglie di zoom, locator, legenda, nomi
-  latini di fiumi e laghi.
-- `tour.js` — sequenza e controlli del tour; `scripts/` — asset generati;
-  `verification/verify_geolocation.py` — audit POI.
+## Data e commit
 
-## Workflow di sessione
-
-- `/checkpoint`: aggiorna questo file, niente commit. `/handoff`: aggiorna il
-  file, esegue `./scripts/check.sh`, propone un commit locale. `/publish`:
-  verifica, committa e push su `origin/main`.
-
-## Ultimo aggiornamento
-
-2026-11-11 — cifra abitanti di Breznik riportata a 5.426 (`index.html`),
-commit `f93a358`.
+- Ultimo aggiornamento: 2026-11-11.
+- Base: `895ad2e` (`origin/main`).
+- Commit del task: creato in questa sessione a partire da questo file.

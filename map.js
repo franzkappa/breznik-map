@@ -49,6 +49,9 @@ let currentPopup = null;
    still lives in the Breznik popup. */
 const DETAIL_ZOOM = 11;
 const DETAIL_LABEL_ZOOM = 12;
+/* River names appear as straight words from this zoom. Below it the basemap
+   itself has no river names and the drawn lines are too small to label. */
+const RIVER_LABEL_MIN_ZOOM = 9;
 const detailPinEls = [];
 const detailLabelEls = [];
 let pinsShown = false;
@@ -197,34 +200,51 @@ function addWaterLabels() {
   const kept = ['!', ['in', ['get', 'name'],
     ['literal', (window.WATER_NAMES || {}).suppressed || []]]];
 
-  if (map.getLayer('waterway_label')) {
-    setL('waterway_label', 'visibility', 'visible');
-    setL('waterway_label', 'text-field', waterNameField('rivers'));
-    setL('waterway_label', 'text-font', ['Montserrat Medium Italic']);
-    setL('waterway_label', 'text-size', ['interpolate', ['linear'], ['zoom'], 9, 8.6, 11, 9.5, 13.4, 11]);
-    setL('waterway_label', 'text-letter-spacing', .04);
-    // Mountain rivers bend more than the basemap's 45° default, which made it
-    // drop most labels; 120° lets the text follow them. The spacing grows with
-    // zoom because each tile-clipped line gets its own label: at z9 it has to
-    // be short for any label to fit, at z13 it has to be long to avoid repeats.
-    setL('waterway_label', 'text-max-angle', 120);
-    setL('waterway_label', 'symbol-spacing', ['interpolate', ['linear'], ['zoom'],
-      9, 160,
-      11, 350,
-      12, 600,
-      13.4, 750
-    ]);
-    setP('waterway_label', 'text-color', '#467f8c');
-    setP('waterway_label', 'text-halo-color', '#f4eee2');
-    setP('waterway_label', 'text-halo-width', 1.4);
-    setP('waterway_label', 'text-opacity', .95);
-    map.setFilter('waterway_label', ['all',
-      ['==', ['geometry-type'], 'LineString'],
-      ['has', 'name'],
-      ['==', ['get', 'kind'], 'river'],
-      kept
-    ]);
-    map.setLayerZoomRange('waterway_label', 9, 24);
+  // The basemap labels rivers with symbol-placement: line, which bends the
+  // glyphs one by one along the meanders: on mountain rivers the name turns
+  // into a serpentine and stops being readable. It is hidden and replaced by
+  // one straight word per river, placed on an anchor point whose bearing comes
+  // from the straightest stretch of the line (see refreshRiverLabels below).
+  setL('waterway_label', 'visibility', 'none');
+
+  if (!map.getSource('river-labels')) {
+    map.addSource('river-labels', {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] }
+    });
+  }
+  if (!map.getLayer('river-name-labels')) {
+    const layer = {
+      id: 'river-name-labels',
+      type: 'symbol',
+      source: 'river-labels',
+      minzoom: RIVER_LABEL_MIN_ZOOM,
+      layout: {
+        'text-field': waterNameField('rivers'),
+        'text-font': ['Montserrat Medium Italic'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 9, 8.6, 11, 9.5, 13.4, 11],
+        'text-letter-spacing': .04,
+        'text-rotate': ['get', 'bearing'],
+        'text-rotation-alignment': 'map',
+        'text-pitch-alignment': 'map',
+        'text-offset': [0, -.45],
+        'text-padding': 0,
+        'text-max-width': 20,
+        'symbol-placement': 'point'
+      },
+      paint: {
+        'text-color': '#467f8c',
+        'text-halo-color': '#f4eee2',
+        'text-halo-width': 1.4,
+        'text-opacity': .95
+      }
+    };
+    // Keep the river names above roads, bridges and buildings (every basemap
+    // line is added earlier) but below the other map labels.
+    const nameBelow = ['watername_ocean', 'watername_lake', 'place_hamlet']
+      .find(id => map.getLayer(id));
+    if (nameBelow) map.addLayer(layer, nameBelow);
+    else map.addLayer(layer);
   }
 
   if (map.getLayer('watername_lake')) {
@@ -244,6 +264,178 @@ function addWaterLabels() {
     ]);
     map.setLayerZoomRange('watername_lake', 10, 24);
   }
+}
+
+/* The river label layer draws points, so every name is one straight word.
+   refreshRiverLabels reads the river lines already loaded in the basemap,
+   groups them by name and, for each name visible in the frame, picks the
+   straightest stretch at least as long as the word. The point at the middle of
+   that stretch carries the bearing of the stretch, which the layer uses as
+   text-rotate: the name stays straight but still follows the valley. */
+let riverLabelKey = '';
+
+function riverLabelSize(zoom) {
+  const stops = [[9, 8.6], [11, 9.5], [13.4, 11]];
+  if (zoom <= stops[0][0]) return stops[0][1];
+  for (let i = 1; i < stops.length; i++) {
+    if (zoom <= stops[i][0]) {
+      const [z0, s0] = stops[i - 1];
+      const [z1, s1] = stops[i];
+      return s0 + (s1 - s0) * (zoom - z0) / (z1 - z0);
+    }
+  }
+  return stops[stops.length - 1][1];
+}
+
+function riverLabelAnchor(name, segments, zoom) {
+  const canvas = map.getCanvas();
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  const margin = 26;
+  const word = Math.min(150, Math.max(34, name.length * riverLabelSize(zoom) * .58));
+  const candidates = [];
+
+  segments.forEach(line => {
+    const pts = [];
+    line.forEach(coord => {
+      const p = map.project(coord);
+      if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
+      const last = pts[pts.length - 1];
+      if (last && Math.hypot(p.x - last.x, p.y - last.y) < 1) return;
+      pts.push(p);
+    });
+    if (pts.length < 2) return;
+
+    const along = [0];
+    for (let i = 1; i < pts.length; i++) {
+      along.push(along[i - 1] + Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+    }
+    const total = along[along.length - 1];
+    if (total < 22) return;
+
+    const span = Math.min(word, total * .92);
+    if (span < 18) return;
+
+    for (let i = 0; i < pts.length - 1 && along[i] <= total - span; i++) {
+      let j = i + 1;
+      while (j < pts.length - 1 && along[j] - along[i] < span) j++;
+      const dx = pts[j].x - pts[i].x;
+      const dy = pts[j].y - pts[i].y;
+      const len = Math.hypot(dx, dy);
+      if (len < 16) continue;
+
+      // Straightness of the window: the largest distance of an intermediate
+      // point from the chord between its ends.
+      const ux = dx / len;
+      const uy = dy / len;
+      let dev = 0;
+      for (let k = i + 1; k < j; k++) {
+        const d = Math.abs((pts[k].x - pts[i].x) * uy - (pts[k].y - pts[i].y) * ux);
+        if (d > dev) dev = d;
+      }
+
+      const mid = pts[Math.round((i + j) / 2)];
+      if (mid.x < margin || mid.y < margin ||
+          mid.x > w - margin || mid.y > h - margin) continue;
+      candidates.push({ mid, dev, angle: Math.atan2(dy, dx) });
+    }
+  });
+
+  if (!candidates.length) return null;
+
+  let bestDev = Infinity;
+  candidates.forEach(c => { if (c.dev < bestDev) bestDev = c.dev; });
+  // Among the near-straightest windows prefer the one nearest the centre of
+  // the frame, so the name does not jump to a random bend while panning.
+  const cx = w / 2;
+  const cy = h / 2;
+  let best = null;
+  let bestDistance = Infinity;
+  candidates.forEach(c => {
+    if (c.dev > bestDev + 2) return;
+    const distance = Math.hypot(c.mid.x - cx, c.mid.y - cy);
+    if (distance < bestDistance) { bestDistance = distance; best = c; }
+  });
+  if (!best) return null;
+
+  // MapLibre rotates text clockwise; the wrap keeps the word upright and, for
+  // a north-south river, reading from the bottom of the map upwards.
+  const degrees = ((best.angle * 180 / Math.PI + 90) % 180 + 180) % 180 - 90;
+  const lngLat = map.unproject(best.mid);
+  return { lng: lngLat.lng, lat: lngLat.lat, bearing: degrees };
+}
+
+function refreshRiverLabels() {
+  const source = map.getSource('river-labels');
+  if (!source) return;
+
+  const zoom = map.getZoom();
+  const features = [];
+  if (zoom >= RIVER_LABEL_MIN_ZOOM) {
+    const suppressed = new Set((window.WATER_NAMES || {}).suppressed || []);
+    const waterLayer = map.getStyle().layers.find(l => l.id === 'waterway');
+    const vectorSource = (waterLayer && waterLayer.source) || 'protomaps';
+    const vectorLayer = (waterLayer && waterLayer['source-layer']) || 'water';
+    const groups = new Map();
+    map.querySourceFeatures(vectorSource, {
+      sourceLayer: vectorLayer,
+      filter: ['all', ['==', ['get', 'kind'], 'river'], ['has', 'name']]
+    }).forEach(f => {
+      const name = f.properties.name;
+      if (!name || suppressed.has(name)) return;
+      const g = f.geometry;
+      const lines = g.type === 'LineString' ? [g.coordinates]
+        : g.type === 'MultiLineString' ? g.coordinates : [];
+      if (!lines.length) return;
+      if (!groups.has(name)) groups.set(name, []);
+      lines.forEach(line => groups.get(name).push(line));
+    });
+
+    groups.forEach((segments, name) => {
+      const anchor = riverLabelAnchor(name, segments, zoom);
+      if (!anchor) return;
+      features.push({
+        type: 'Feature',
+        properties: {
+          name,
+          bearing: Math.round(anchor.bearing * 10) / 10
+        },
+        geometry: { type: 'Point', coordinates: [anchor.lng, anchor.lat] }
+      });
+    });
+
+    // OSM often carries both "Стряма" and "река Стряма" for the same river, so
+    // two labels land a few dozen pixels apart and one cancels the other out.
+    // When two names differ only by the "река" prefix or suffix and sit close
+    // together, keep the shorter one.
+    const baseName = s => s.toLowerCase()
+      .replace(/^(река|р\.)\s*/, '')
+      .replace(/\s+река$/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    const placed = [];
+    features
+      .map(f => ({ f, p: map.project(f.geometry.coordinates) }))
+      .sort((a, b) => a.f.properties.name.length - b.f.properties.name.length)
+      .forEach(({ f, p }) => {
+        const duplicate = placed.some(k =>
+          baseName(k.f.properties.name) === baseName(f.properties.name) &&
+          Math.hypot(k.p.x - p.x, k.p.y - p.y) < 140);
+        if (!duplicate) placed.push({ f, p });
+      });
+    features.length = 0;
+    placed.forEach(({ f }) => features.push(f));
+  }
+
+  // setData re-renders the map, which fires idle again: bail out when nothing
+  // changed instead of looping.
+  const key = features.map(f => {
+    const [lng, lat] = f.geometry.coordinates;
+    return `${f.properties.name}|${lng.toFixed(5)}|${lat.toFixed(5)}|${f.properties.bearing}`;
+  }).sort().join(';');
+  if (key === riverLabelKey) return;
+  riverLabelKey = key;
+  source.setData({ type: 'FeatureCollection', features });
 }
 
 /* A warm, slightly darker fill makes Bulgaria stand out from its neighbours
@@ -789,12 +981,14 @@ map.on('load', () => {
   map.setMaxZoom(13.4);
   updateZoomClasses();
   updateLocator();
+  refreshRiverLabels();
   document.getElementById('loader').classList.add('hidden');
 });
 
 map.on('move', updateLocator);
 map.on('zoom', updateZoomClasses);
 map.on('zoomend', updateZoomClasses);
+map.on('idle', refreshRiverLabels);
 
 window.addEventListener('resize', () => {
   map.resize();
