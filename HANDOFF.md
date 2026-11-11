@@ -87,4 +87,4 @@ Esito ultima esecuzione (2026-11-11): `ALL CHECKS PASS`.
 
 - Ultimo aggiornamento: 2026-11-11.
 - Base: `895ad2e` (`origin/main`).
-- Commit del task: creato in questa sessione a partire da questo file.
+- Commit del task: `51596dd` (locale, non pubblicato).
