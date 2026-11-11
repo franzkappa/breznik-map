@@ -134,4 +134,5 @@ la console.
 
 ## Ultimo aggiornamento
 
-2026-11-11 — cifra abitanti di Breznik riportata a 5.426 (`index.html`).
+2026-11-11 — cifra abitanti di Breznik riportata a 5.426 (`index.html`),
+commit `f93a358`.
