@@ -7,13 +7,25 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 
 ## Stato attuale
 
-- Data: 2026-11-11. Base: commit `21919a2`; pubblicato su `origin/main`.
-- Working tree: `index.html`, `map.js`, `README.md`, `scripts/check.sh`
-  modificati; nuovi `scripts/build_water_names.py` e `assets/water-names.js`.
+- Data: 2026-11-11. Base: commit `06aa10c`; pubblicato su `origin/main`.
+- Working tree: solo `index.html` modificato (cifra abitanti di Breznik);
+  tutto il resto è già su `origin/main`.
 - Repo `franzkappa/breznik-map`, preview GitHub Pages con `robots.txt` noindex;
   in locale `python3 -m http.server 8000` → http://localhost:8000
 
 ## Cosa è cambiato
+
+Ripristinata la cifra degli abitanti di Breznik nel popup e nella label.
+
+- **`index.html`** (`PLACES`, voce `breznik`): `stat` e `label.sub` tornano a
+  `5,426 residents` / `5.426 abitanti`. La revisione del copy in `ae07874` li
+  aveva portati a 3.393; su richiesta si ripristina il valore originale.
+  Nessun cambio di cache-bust: il testo è inline in `index.html`, non in `map.js`.
+- Verifica a runtime (http://localhost:8000): clic sul pin Breznik → popup con
+  "5,426 residents"; label del pin aggiornata; console senza errori né warning.
+  `./scripts/check.sh`: **ALL CHECKS PASS**.
+
+## Lavoro precedente (già pubblicato)
 
 Nomi di fiumi e laghi in latino, senza dipendere da `name:en` del basemap.
 
@@ -61,6 +73,9 @@ Nomi di fiumi e laghi in latino, senza dipendere da `name:en` del basemap.
 
 - `PLACES` ha già label e popup bilingui, ma `I18N` ha il solo blocco `en` e
   `state.lang` è fisso.
+- Cifra abitanti di Breznik: in questo file compare `5,426` (valore corrente);
+  il commit `ae07874` l'aveva portata a `3,393`. Prima di un'altra modifica
+  verificare il dato con la redazione, per non alternare le due cifre.
 - I nomi traslitterati non sono stati riletti da un madrelingua: controllare in
   particolare le voci fuori dall'area di Breznik (es. `Селския Дол` →
   "Selskia Dol", dove l'ufficiale darebbe "Selskiya dol"). Le voci in
@@ -119,4 +134,4 @@ la console.
 
 ## Ultimo aggiornamento
 
-2026-11-11 — nomi latini di fiumi e laghi (`water-names.js`), commit `21919a2`.
+2026-11-11 — cifra abitanti di Breznik riportata a 5.426 (`index.html`).
