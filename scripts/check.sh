@@ -12,6 +12,7 @@ for name in [
     "scripts/build_borders.py",
     "scripts/build_labels.py",
     "scripts/build_map_assets.py",
+    "scripts/build_water_names.py",
 ]:
     ast.parse(Path(name).read_text(encoding="utf-8"), filename=name)
 print("sintassi OK")
@@ -33,6 +34,7 @@ for f in \
   tour.js \
   assets/borders.js \
   assets/place-labels.js \
+  assets/water-names.js \
   assets/locator.webp \
   assets/bulgaria-highlight.js
 do

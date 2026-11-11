@@ -7,26 +7,41 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 
 ## Stato attuale
 
-- Data: 2026-11-10. Base: commit `ac52fc7`; lavoro locale **non pubblicato**.
-- Working tree: solo i file del task (`index.html`, `HANDOFF.md`); nessuna
-  modifica estranea.
+- Data: 2026-11-11. Base: commit `3d07056`; lavoro pronto per il commit.
+- Working tree: `index.html`, `map.js`, `README.md`, `scripts/check.sh`
+  modificati; nuovi `scripts/build_water_names.py` e `assets/water-names.js`.
 - Repo `franzkappa/breznik-map`, preview GitHub Pages con `robots.txt` noindex;
   in locale `python3 -m http.server 8000` → http://localhost:8000
 
 ## Cosa è cambiato
 
-Due soli interventi di testo in `index.html`; niente JS, CSS o asset.
+Nomi di fiumi e laghi in latino, senza dipendere da `name:en` del basemap.
 
-- **Popup Stomana, solo `body.en`** corretto: "The Pernik steelworks **were** at
-  the centre of the 2019–20 water scandal." (prima era un frammento senza
-  verbo). Resto del popup e `body.it` invariati.
-- **Corpo della legenda** (`p.deck` e `I18N.en.deck`): "A map of the places
-  that show how, in Bulgaria, access to drinking water exposes fault lines in
-  democracy and social inequality." Kicker, titolo, chiave e attribuzioni fermi.
-- Nessun cache-bust da incrementare: `map.js` (`20261110-31`) e `tour.js`
-  (`20261110-9`) non sono stati toccati.
-- Verifica a runtime (http://localhost:8000): pagina caricata, console senza
-  errori, deck su 3 righe, pannello legenda invariato in altezza.
+- **`scripts/build_water_names.py`**: interroga Overpass (Bulgaria + 30 km),
+  costruisce `window.WATER_NAMES = {rivers, lakes, suppressed}`. Usa `name:en`
+  se latino, altrimenti translitterazione ufficiale bulgara (Streamlined
+  System) con override per i nomi dell'articolo e le grafie inglesi
+  consolidate (Konska, Krassava, Danube, Struma, Maritsa, Nisava…). I nomi in
+  cirillico serbo/macedone non romanizzabili finiscono in `suppressed` e non
+  vengono mostrati (niente cirillico sulla mappa).
+- **`assets/water-names.js`**: 748 nomi di fiumi, 752 di laghi, 49 soppressi,
+  62 KB (19.5 KB gzip).
+- **`map.js`**: `waterNameField()` costruisce una `match` sul `name`; i layer
+  basemap `waterway_label` e `watername_lake` ricevono il nome latino. Filtri:
+  `has name` + `kind == river` (o lake/water/reservoir) + lista soppressi.
+  Aggiunti `text-max-angle: 120` e `symbol-spacing` interpolato (160 a z9,
+  600 a z12, 750 a z13.4): senza, le etichette sui fiumi di montagna venivano
+  quasi tutte scartate; lo spacing evita 3–4 ripetizioni dello stesso nome.
+  I fiumi sono etichettati da z9 (sotto z9 CARTO non disegna linee d'acqua),
+  i laghi da z10 ma CARTO genera i punti-nome dei laghi solo verso z13.
+- **`index.html`**: script `assets/water-names.js?v=20261110-1`; cache-bust
+  `map.js?v=20261110-32`. `tour.js` invariato.
+- **`check.sh`**: nuovo script nella sintassi Python e nuovo asset nei file
+  richiesti.
+- Verifica a runtime (http://localhost:8000): console senza errori; a z9.5
+  compaiono Maritsa, Stryama, Vacha…; a z12 Breznik ha Turska reka + Konska;
+  a z13.4 Selska reka + Konska; laghi OK ("Lake Mandrensko"); embed a 390 px
+  leggibile. Profilo CPU senza hotspot (la `match` è valutata nei worker).
 
 ## Riferimenti invariati
 
@@ -44,26 +59,32 @@ Due soli interventi di testo in `index.html`; niente JS, CSS o asset.
 
 ## Problemi aperti
 
-- UI solo in inglese: `I18N` ha il solo blocco `en` e `state.lang` è fisso;
-  label e popup sono già bilingui in `PLACES`.
-- `body.it` del popup Stomana è una frase nominale ("L'acciaieria di Pernik al
-  centro dello scandalo…"): allinearlo alla forma verbale inglese se si vuole
-  parallelismo stretto.
-- Fra z11 e z12 i POI secondari sono pallini senza nome (scelta voluta); sotto
-  z11 non c'è più alcun testo che li elenchi: se serve, reintrodurre un riquadro.
-- Le soglie dipendono dalla larghezza fissa delle etichette: se cambiano i testi,
-  ricontrollare le sovrapposizioni a z12.
-- Fiumi e laghi hanno nome solo dove OSM ha `name:en` (la Konska resta senza
-  etichetta, i laghi da z12); a volte quel `name:en` è in cirillico.
-- Tile CARTO/ArcGIS esterni: valutare self-hosting (offline manca il relief).
-  QA iOS/Android non formalizzata; embed da provare su balcanicaucaso.org.
+- `PLACES` ha già label e popup bilingui, ma `I18N` ha il solo blocco `en` e
+  `state.lang` è fisso.
+- I nomi traslitterati non sono stati riletti da un madrelingua: controllare in
+  particolare le voci fuori dall'area di Breznik (es. `Селския Дол` →
+  "Selskia Dol", dove l'ufficiale darebbe "Selskiya dol"). Le voci in
+  `WATER_NAMES` sono generate: per correggerne una, aggiungere un override in
+  `build_water_names.py` e rigenerare.
+- Con `symbol-spacing` interpolato, a z9 alcune etichette possono comparire due
+  volte sulla stessa asta fluviale (segmenti tagliati dai tile): è accettato.
+- I ruscelli (`stream`) non sono etichettati: CARTO li disegna solo da z13 e
+  resterebbero senza linea sotto. Se servono i tributari minori della Konska,
+  valutare l'overlay GeoJSON (opzione B).
+- I laghi hanno nome solo se CARTO genera il punto-nome (in pratica da z13); il
+  bacino di Krassava è coperto dalla label del pin.
+- Fiumi e laghi hanno nome solo dove OSM ha `name`; le etichette dipendono dai
+  tile CARTO esterni (nessun self-hosting).
+- `build_water_names.py` richiede Overpass: due query separate (quella unica
+  risponde 502), cache in `/tmp`, retry sul mirror kumi.
 - `build_map_assets.py` richiede Montserrat in `~/Library/Fonts` e scarica
   Natural Earth al primo run.
+- QA iOS/Android non formalizzata; embed da provare su balcanicaucaso.org.
 
 ## Cosa non toccare
 
-- `assets/*.js`, `assets/*.geojson` (generati dagli script); `vendor/`
-  (MapLibre 4.7.1); attribuzioni CARTO/OSM/Esri/USGS/NASA.
+- `assets/*.js`, `assets/*.geojson` a mano (si rigenerano con gli script);
+  `vendor/` (MapLibre 4.7.1); attribuzioni CARTO/OSM/Esri/USGS/NASA.
 - `.docx`, `.xlsx` e altri file CIJI senza richiesta esplicita.
 
 Vincoli:
@@ -85,7 +106,8 @@ la console.
 ## File chiave
 
 - `index.html` — markup, CSS, dati `PLACES`, `I18N`, popup.
-- `map.js` — MapLibre, layer, marker, soglie di zoom, locator, legenda.
+- `map.js` — MapLibre, layer, marker, soglie di zoom, locator, legenda, nomi
+  latini di fiumi e laghi.
 - `tour.js` — sequenza e controlli del tour; `scripts/` — asset generati;
   `verification/verify_geolocation.py` — audit POI.
 
@@ -97,4 +119,4 @@ la console.
 
 ## Ultimo aggiornamento
 
-2026-11-10 — commit del task: `ee0715f`.
+2026-11-10 — nomi latini di fiumi e laghi (`water-names.js`).

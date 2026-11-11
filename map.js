@@ -176,34 +176,60 @@ function applyEditorialStyle() {
   }
 }
 
-/* River and lake names come from the basemap's own water labels, re-enabled
-   here with the editorial typography. Only features that carry an English
-   name are kept, so nothing is shown in Cyrillic; the threshold keeps the
-   overview clean and lets names appear from zoom 9 inwards. */
+/* Bulgarian rivers and lakes carry almost no `name:en` in the basemap tiles:
+   around Breznik only one named river in four has one, and the Konska has
+   none. The Latin names therefore come from assets/water-names.js
+   (scripts/build_water_names.py), which transliterates the OSM names with the
+   official Bulgarian system and keeps the conventional English spellings for
+   the big rivers. A `match` expression swaps the name in place, so the
+   basemap still draws the line and the label follows it. */
+function waterNameField(kind) {
+  const table = (window.WATER_NAMES || {})[kind] || {};
+  const branches = [];
+  Object.keys(table).forEach(name => branches.push(name, table[name]));
+  if (!branches.length) return ['get', 'name'];
+  return ['match', ['get', 'name'], ...branches, ['get', 'name']];
+}
+
 function addWaterLabels() {
-  const englishName = ['all', ['has', 'name:en'], ['!=', ['get', 'name:en'], '']];
+  // Names in Serbian or Macedonian Cyrillic that the Bulgarian rules cannot
+  // romanise are listed here: hiding them is better than printing Cyrillic.
+  const kept = ['!', ['in', ['get', 'name'],
+    ['literal', (window.WATER_NAMES || {}).suppressed || []]]];
 
   if (map.getLayer('waterway_label')) {
     setL('waterway_label', 'visibility', 'visible');
-    setL('waterway_label', 'text-field', ['get', 'name:en']);
+    setL('waterway_label', 'text-field', waterNameField('rivers'));
     setL('waterway_label', 'text-font', ['Montserrat Medium Italic']);
-    setL('waterway_label', 'text-size', ['interpolate', ['linear'], ['zoom'], 9, 8.5, 11, 9.4, 13, 10.8]);
+    setL('waterway_label', 'text-size', ['interpolate', ['linear'], ['zoom'], 9, 8.6, 11, 9.5, 13.4, 11]);
     setL('waterway_label', 'text-letter-spacing', .04);
+    // Mountain rivers bend more than the basemap's 45° default, which made it
+    // drop most labels; 120° lets the text follow them. The spacing grows with
+    // zoom because each tile-clipped line gets its own label: at z9 it has to
+    // be short for any label to fit, at z13 it has to be long to avoid repeats.
+    setL('waterway_label', 'text-max-angle', 120);
+    setL('waterway_label', 'symbol-spacing', ['interpolate', ['linear'], ['zoom'],
+      9, 160,
+      11, 350,
+      12, 600,
+      13.4, 750
+    ]);
     setP('waterway_label', 'text-color', '#467f8c');
     setP('waterway_label', 'text-halo-color', '#f4eee2');
     setP('waterway_label', 'text-halo-width', 1.4);
     setP('waterway_label', 'text-opacity', .95);
     map.setFilter('waterway_label', ['all',
       ['==', ['geometry-type'], 'LineString'],
+      ['has', 'name'],
       ['==', ['get', 'kind'], 'river'],
-      englishName
+      kept
     ]);
     map.setLayerZoomRange('waterway_label', 9, 24);
   }
 
   if (map.getLayer('watername_lake')) {
     setL('watername_lake', 'visibility', 'visible');
-    setL('watername_lake', 'text-field', ['get', 'name:en']);
+    setL('watername_lake', 'text-field', waterNameField('lakes'));
     setL('watername_lake', 'text-font', ['Montserrat Medium Italic']);
     setL('watername_lake', 'text-size', ['interpolate', ['linear'], ['zoom'], 10, 8.5, 12, 9.6, 14, 11]);
     setP('watername_lake', 'text-color', '#3f7783');
@@ -212,8 +238,9 @@ function addWaterLabels() {
     setP('watername_lake', 'text-opacity', .95);
     map.setFilter('watername_lake', ['all',
       ['==', ['geometry-type'], 'Point'],
+      ['has', 'name'],
       ['in', ['get', 'kind'], ['literal', ['lake', 'water', 'reservoir']]],
-      englishName
+      kept
     ]);
     map.setLayerZoomRange('watername_lake', 10, 24);
   }

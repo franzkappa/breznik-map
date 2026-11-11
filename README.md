@@ -24,6 +24,7 @@ The map now uses a **tiled, vector basemap** instead of a single local raster im
 - **Relief**: `ArcGIS World Hillshade` raster tiles, desaturated and blended at low opacity. The service sends CORS headers, so it works on GitHub Pages and from `file://`. The hillshade sits above the land colours but below water, roads and labels.
 - CARTO’s own country and sea symbol layers are hidden. Country names and the **Black Sea** are drawn by a custom Montserrat SemiBold layer whose label points sit inside each Natural Earth polygon (or clearly in the sea), so Greece, Turkey and the other neighbours stay on the correct side of the border at every zoom and viewport size.
 - **Administrative regions** and **secondary cities** are separate GeoJSON layers, deliberately quieter than the story labels. Region names are the 28 Bulgarian oblasts; the larger cities appear as small dots and labels.
+- **River and lake names** are OSM names transliterated into Latin script, because the CARTO tiles carry an English `name:en` for only a small minority of Bulgarian water features (around Breznik, one named river in four). `assets/water-names.js` holds the lookup and `map.js` applies it to the basemap’s own labels, so the line and its name stay together. The table uses the official Bulgarian system plus a few conventional spellings (Danube, Struma, Maritsa); names that cannot be written in Latin script are suppressed instead of shown in Cyrillic.
 - Bulgaria has a slightly darker warm fill, loaded from `assets/bulgaria-highlight.js`, so it reads as the subject country against its neighbours. The polygon comes from the OSM Bulgaria boundary. A classic `<script>` is used instead of a local GeoJSON fetch so the map also works when `index.html` is opened directly from disk.
 - National borders are drawn from `assets/borders.js`: the Bulgarian segments use the **same simplified polygon as the fill**, so the dashed line and the fill edge coincide exactly at every zoom. The other Balkan borders come from Natural Earth’s 10m land-boundary lines, which are continuous instead of breaking into short fragments. Maritime stretches are clipped at the coast, so no border continues into the Black Sea or the Aegean. CARTO’s own boundary lines are hidden.
 - The locator inset uses the same Montserrat SemiBold typography, colours and dashed borders as the main map. It is regenerated from Natural Earth with `scripts/build_map_assets.py`.
@@ -68,12 +69,14 @@ scripts/
   build_map_assets.py      rebuilds the locator inset and the highlight script
   build_borders.py         rebuilds the national-border lines (OSM + Natural Earth 10m)
   build_labels.py          rebuilds the region and city label layers
+  build_water_names.py     rebuilds the Latin river and lake name lookup (Overpass)
 assets/
   bulgaria-highlight.js    runtime OSM Bulgaria polygon (works from file://)
   bulgaria-osm.geojson     source polygon for the highlight and Bulgarian borders
   neighbors-osm.geojson    OSM neighbour polygons used to clip the Bulgarian border
   borders.js               national-border lines, land-only (Bulgarian segments share the fill geometry)
   place-labels.js          administrative region and secondary-city label points
+  water-names.js           Cyrillic -> Latin lookup for river and lake labels
   balkans-countries.geojson  Natural Earth polygons used to build the locator
   locator.webp             Balkans locator basemap, Montserrat labels
   logos/                   OBCT and CIJI navy logos
@@ -105,9 +108,10 @@ To rebuild the locator inset and the `bulgaria-highlight.js` wrapper after a pal
 python3 scripts/build_map_assets.py   # locator + Bulgarian fill wrapper
 python3 scripts/build_borders.py      # dashed national borders
 python3 scripts/build_labels.py       # oblast and city labels
+python3 scripts/build_water_names.py  # Latin river and lake names
 ```
 
-`build_map_assets.py` downloads Natural Earth 50m data on its first run and expects Montserrat SemiBold in `~/Library/Fonts`; use `--font` and `--font-italic` to point elsewhere. `build_borders.py` downloads Natural Earth 10m land and land-boundary lines on its first run. `build_labels.py` downloads Natural Earth 10m admin-1 on its first run.
+`build_map_assets.py` downloads Natural Earth 50m data on its first run and expects Montserrat SemiBold in `~/Library/Fonts`; use `--font` and `--font-italic` to point elsewhere. `build_borders.py` downloads Natural Earth 10m land and land-boundary lines on its first run. `build_labels.py` downloads Natural Earth 10m admin-1 on its first run. `build_water_names.py` queries Overpass for named rivers and lakes within Bulgaria plus a 30 km margin; it caches the two responses in `/tmp` and retries on a mirror if the main server is busy.
 
 ## Handoff
 
