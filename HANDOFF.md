@@ -7,7 +7,7 @@ Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
 
 ## Stato attuale
 
-- Data: 2026-11-11. Base: commit `3d07056`; lavoro pronto per il commit.
+- Data: 2026-11-11. Base: commit `21919a2`; pubblicato su `origin/main`.
 - Working tree: `index.html`, `map.js`, `README.md`, `scripts/check.sh`
   modificati; nuovi `scripts/build_water_names.py` e `assets/water-names.js`.
 - Repo `franzkappa/breznik-map`, preview GitHub Pages con `robots.txt` noindex;
@@ -119,4 +119,4 @@ la console.
 
 ## Ultimo aggiornamento
 
-2026-11-10 — nomi latini di fiumi e laghi (`water-names.js`).
+2026-11-11 — nomi latini di fiumi e laghi (`water-names.js`), commit `21919a2`.
