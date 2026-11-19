@@ -3,68 +3,82 @@
 ## Obiettivo
 
 Mappa interattiva della crisi idrica di Breznik per l'articolo CIJI/OBCT
-"Democracy Running Dry", da embeddare tramite iframe.
+"Democracy Running Dry", da embeddare tramite iframe. Serve in due lingue:
+inglese nell'articolo EN, italiano in quello IT di balcanicaucaso.org.
 
-## Stato attuale (2026-11-11)
+## Stato attuale (2026-11-19)
 
-- Base pubblicata: commit `895ad2e` su `origin/main`; le modifiche di questo
-  task sono ancora da committare.
-- Working tree: `map.js`, `index.html`, `HANDOFF.md`.
+- Base pubblicata: `da9e56a` su `origin/main`; la versione bilingue `b5e0628`
+  è in pubblicazione.
+- Working tree di questo task: `index.html`, `map.js`, `tour.js`,
+  `scripts/check.sh`, `README.md`, `it/index.html` (nuovo), `HANDOFF.md`.
+  **Non ancora committato.**
 - `screenshot-nomi-fiumi-illeggibili/` è materiale utente non tracciato: va
   lasciato fuori dai commit.
 - Repo `franzkappa/breznik-map`; preview GitHub Pages con `robots.txt` noindex.
 - In locale: `python3 -m http.server 8000` → http://localhost:8000
 
-## Cosa è cambiato
+## Cosa è cambiato (i18n, opzione A)
 
-- **Nomi dei fiumi** (`map.js`): il layer CARTO `waterway_label`
-  (`symbol-placement: line`, glifi piegati lungo le anse) è nascosto e
-  sostituito dal source `river-labels` + layer `river-name-labels`.
-- `refreshRiverLabels()` gira su `idle`: legge le linee già caricate dal
-  basemap, le raggruppa per `name`, scarta `WATER_NAMES.suppressed` e sceglie
-  per ogni fiume il tratto più retto lungo almeno quanto la parola. L'ancora è
-  il centro del tratto, il bearing è l'angolo della corda.
-- Layer `symbol-placement: point` con `text-rotate: ['get','bearing']` e
-  `text-rotation-alignment: map`: la parola resta dritta ma orientata lungo la
-  valle; `text-offset: [0,-.45]`, una etichetta per nome.
-- Alias OSM vicini ("Стряма"/"река Стряма") deduplicati entro 140 px (resta il
-  nome più corto); `text-padding: 0` evita collisioni tra etichette adiacenti.
-- `RIVER_LABEL_MIN_ZOOM = 9`; sotto soglia il source viene svuotato.
-- Cache-bust `map.js?v=20261111-34`.
-- Verificato con Playwright: z9.4 (52 etichette dritte), Breznik 11.5/12.4,
-  Stryama 11.8/12.9, z13.4, mobile 390 px; console pulita; `check.sh` verde.
+- **Una sola mappa, due URL**: `/?lang=[it|en]`. `/it/index.html` è un
+  redirect (`meta refresh`) a `../?lang=it`, così ogni embed resta a una riga
+  e nessuna cartella duplica il codice.
+- `index.html`: `langFromQuery()` accetta solo `it`, tutto il resto → `en`.
+  Aggiunto il blocco `it` a `I18N` (eyebrow, titolo, deck, legenda, crediti,
+  loader, etichette aria e tour). `COUNTRY_LABELS` ha ora `en`/`it` per nome
+  (Macedonia del Nord, Bosnia Erzegovina, Ungheria, Moldavia, Ucraina,
+  Grecia, Turchia, Mar Nero; forme allineate ai menu di balcanicaucaso.org).
+- `map.js`: il layer `country-labels` usa `label[state.lang]`;
+  `applyLang()` aggiorna anche `aria-label`, `title`, `alt` (chiavi
+  `data-i18n-aria-label`, `data-i18n-title`, `data-i18n-alt`) e
+  `document.title`; la chiave anti-loop di `refreshRiverLabels()` include la
+  lingua.
+- `tour.js`: "Luogo i di n: nome", aria dei pin "… — apri la scheda".
+- Cache-bust: `map.js?v=20261119-35`, `tour.js?v=20261119-10`.
+- `scripts/check.sh`: aggiunti `it/index.html`, `lang=it` e `it:{`.
+- README: nuova sezione **Embed** con i due snippet e le note.
+
+## Verificato (Playwright, server locale)
+
+- `?lang=it`: titolo, h1, deck, legenda, fonte, loader, aria/label, `alt`
+  inset, pulsanti tour, popup Breznik ("5.426 abitanti", testo IT), aria-live
+  "Luogo 1 di 11", pin "Breznik — apri la scheda".
+- `?lang=en` e senza parametro: identici a prima.
+- `?lang=de`: fallback EN. `/it/` → `/?lang=it`.
+- Mobile 340 e 390 px: nessun overflow, etichetta "Panoramica" nascosta come
+  già accadeva con "Overview".
+- Console: 0 errori, 0 warning. `./scripts/check.sh`: `ALL CHECKS PASS`.
 
 ## Prossimo task
 
-Rifinire densità e posizionamento delle etichette se la redazione lo chiede
-(vedi problemi aperti), oppure passare alla QA embed.
+1. La redazione inserisce i due embed nelle bozze (snippet in README, sezione
+   **Embed**) e verifica su balcanicaucaso.org.
+2. Se serve, commit e `/publish` di questo task (repo `franzkappa/breznik-map`,
+   non di CIJI).
 
-Criteri di accettazione:
+Criteri di accettazione embed:
 
-- una parola unica e dritta, orientata al tratto più retto del fiume, tra z9 e
-  z13.4;
-- nessun duplicato evidente e nessuna sovrapposizione con pin o altri nomi;
-- nessuna regressione desktop/mobile (390 px);
-- console senza errori/warning e `check.sh` verde.
+- articolo EN → mappa in inglese; articolo IT → mappa in italiano;
+- altezza corretta dentro `fusion_code`, nessuna barra di scorrimento;
+- console pulita su entrambe le pagine ospiti.
 
 ## Problemi aperti
 
-- Densità: a z9.4 circa 50 etichette visibili; valutare con la redazione.
-- Le parole lunghe vicine al bordo vengono tagliate (`symbol-avoid-edges` non
-  aiuta: vale per i bordi tile, non per il canvas).
-- L'ancora dipende dal centro del viewport: piccoli salti di posizione quando
-  si panna su fiumi con più tratti retti equivalenti.
-- Il bearing dipende dal source/layer CARTO (fallback su `waterway`): da
-  ricontrollare se il basemap cambia.
-- Alias con nomi molto diversi per lo stesso fiume non vengono deduplicati.
-- Cifra abitanti Breznik: `5,426` nel file, `3,393` in `ae07874`; verificare
-  con la redazione prima di cambiarla.
-- UI italiana non ancora fatta: `I18N` ha solo `en` e `state.lang` è fisso.
+- **Testi italiani dei POI e di `I18N` non riletti dalla redazione**: sono
+  prerequisito della pubblicazione IT. Confrontare con le forme usate dal
+  sito; la cifra abitanti Breznik (`5,426` / `5.426`) resta da confermare.
+- Lingua anche nei widget MapLibre di default (NavigationControl, attributo
+  compatto): restano "Zoom in/out" se esposti; non visibili sulle etichette.
+- Densità etichette fiumi (~50 a z9.4) e parole tagliate ai bordi: invariate.
+- L'ancora delle etichette fiumi dipende dal centro del viewport.
+- Il bearing dei fiumi dipende dal layer CARTO `waterway`: ricontrollare se il
+  basemap cambia.
+- Alias con nomi molto diversi per lo stesso fiume non deduplicati.
+- Ruscelli (`stream`) non etichettati; laghi solo dove CARTO genera il punto.
 - Nomi traslitterati non riletti da un madrelingua (es. "Selskia Dol").
-- Ruscelli (`stream`) non etichettati; laghi solo dove CARTO genera il punto-nome.
 - `build_water_names.py` richiede Overpass; `build_map_assets.py` richiede
   Montserrat e Natural Earth.
-- QA iOS/Android non formalizzata; embed da provare su balcanicaucaso.org.
+- QA iOS/Android non formalizzata.
 
 ## Cosa non toccare
 
@@ -79,12 +93,13 @@ Criteri di accettazione:
 ## Comando di verifica
 
 `./scripts/check.sh` — Python, dipendenze, 13 POI, locator, asset e sanity.
-Non valida il JS: ricaricare la pagina e guardare la console.
+Non valida il JS: ricaricare la pagina e guardare la console (in entrambe le
+lingue: `/?lang=en` e `/?lang=it`).
 
-Esito ultima esecuzione (2026-11-11): `ALL CHECKS PASS`.
+Esito ultima esecuzione (2026-11-19): `ALL CHECKS PASS`.
 
 ## Data e commit
 
-- Ultimo aggiornamento: 2026-11-11.
-- Base: `895ad2e` (`origin/main`).
-- Commit del task: `51596dd` (locale, non pubblicato).
+- Ultimo aggiornamento: 2026-11-19.
+- Base: `da9e56a` (`origin/main`).
+- Commit del task: `b5e0628` (locale, da pubblicare).
