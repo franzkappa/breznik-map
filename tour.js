@@ -64,8 +64,11 @@
 
     if (index >= 0) {
       const place = stops[index].place;
-      liveEl.textContent = 'Place ' + (index + 1) + ' of ' + stops.length +
-        ': ' + place.label.en.name;
+      const t = I18N[state.lang] || I18N.en;
+      liveEl.textContent = t.tourPlace
+        .replace('{i}', index + 1)
+        .replace('{n}', stops.length)
+        .replace('{name}', (place.label[state.lang] || place.label.en).name);
     } else {
       liveEl.textContent = '';
     }
@@ -145,7 +148,8 @@
   markers.forEach(({ p, marker }) => {
     if (!marker) return;
     const el = marker.getElement();
-    el.setAttribute('aria-label', p.label.en.name + ' — open popup');
+    el.setAttribute('aria-label', (I18N[state.lang] || I18N.en).openPopup
+      .replace('{name}', (p.label[state.lang] || p.label.en).name));
     el.addEventListener('click', () => {
       const i = stops.findIndex(stop => stop.id === p.id);
       if (i < 0) {

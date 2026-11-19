@@ -30,6 +30,7 @@ python3 verification/verify_geolocation.py
 echo "== Asset richiesti =="
 for f in \
   index.html \
+  it/index.html \
   map.js \
   tour.js \
   assets/borders.js \
@@ -47,5 +48,7 @@ grep -q "new maplibregl.Map" map.js
 grep -q "const STOPS" tour.js
 grep -q "map.js" index.html
 grep -q "tour.js" index.html
+grep -q 'lang=it' it/index.html
+grep -q "it:{" index.html
 
 echo "OK: controlli superati"

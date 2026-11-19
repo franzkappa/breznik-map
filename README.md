@@ -15,6 +15,41 @@ Open **`index.html`** in a browser, or embed it:
 
 The page fills the iframe viewport; the host page only needs to set a height. A height of 560–720 px works well for a 16:10 or 3:2 article column.
 
+## Embed
+
+The map is published from this repository with GitHub Pages. It is served in **English at `/`** and in **Italian at `/?lang=it`** (a request for `/it/` redirects there). Both languages are the same `index.html`: the Italian texts for the places, the interface and the country labels already live in `PLACES` and `I18N`, and `?lang=` simply selects them. Any other value, or no value at all, falls back to English, so old links keep working.
+
+The two articles therefore need **one snippet each**, with the same markup apart from the `src`:
+
+```html
+<!-- English article -->
+<iframe
+  src="https://franzkappa.github.io/breznik-map/"
+  title="Breznik and the water crisis — interactive map"
+  style="width:100%; height:800px; border:0; display:block"
+  loading="lazy"
+  allow="fullscreen">
+</iframe>
+```
+
+```html
+<!-- Italian article -->
+<iframe
+  src="https://franzkappa.github.io/breznik-map/?lang=it"
+  title="Breznik e la crisi idrica — mappa interattiva"
+  style="width:100%; height:800px; border:0; display:block"
+  loading="lazy"
+  allow="fullscreen">
+</iframe>
+```
+
+Notes:
+
+- Both pages carry `noindex`, so the map is not indexed on its own; the search engines index the articles.
+- Use `style="height:…"` rather than the `height="800px"` attribute: the CSS value is valid HTML and wins over builder styles.
+- If the iframe is pasted through a shortcode (`[fusion_code]`) that strips `loading`, nothing breaks; it only means the map starts loading immediately.
+- To preview another language from the console: `?lang=en` (or no parameter).
+
 ## Basemap
 
 The map now uses a **tiled, vector basemap** instead of a single local raster image, so roads and water stay sharp at every zoom level.
@@ -40,8 +75,8 @@ The visual treatment in `map.js` follows the Le Monde reference: paper backgroun
 - **Legend inside the map**, in a semi-transparent panel at top left, with a short explanation and a key for the point and line symbols used on the map. Points sit in the left column and lines in the right one.
 - **Guided tour bar** at the bottom centre: previous/next buttons move through the eleven story stops and open the matching popup; a dedicated **Overview** button returns to the general view.
 - **Popups** with the article’s key facts. The Breznik popup also summarises the very local places — Bardo Hill, Milin Kamak, the Konska and the Bardo spring — which at the national scale would otherwise sit on top of each other. If a popup would overlap the legend, the legend minimises automatically so the popup stays readable. On phones, a direct tap on a pin nudges the map so the whole popup stays on screen and above the tour bar.
-- **English only** for now; a separate Italian version can be produced later.
-- In short iframes (height below 680 px) or narrow ones (width below 760 px) the legend starts collapsed to a single bar with the line “Bulgaria • Water and democracy”; the **+** button expands it.
+- **English and Italian**: the same page, chosen with `?lang=` (see “Embed”). The place names, popup texts, interface and country labels are already translated in `PLACES`, `I18N` and `COUNTRY_LABELS`; river, lake, region and city labels stay in their Latin transliteration in both languages.
+- In short iframes (height below 680 px) or narrow ones (width below 760 px) the legend starts collapsed to a single bar with the line “Bulgaria • Water and democracy” (or “Bulgaria • Acqua e democrazia”); the **+** button expands it.
 - **Phone layout**: the “Tour” word is dropped to shorten the bar, the partner logos sit on the same bottom line on the left, the locator sits above it, the legend can be opened without covering the whole screen, and popups shrink to the viewport and scroll when a short landscape viewport would clip them. Safe-area insets are respected.
 - Map labels carry only the place name, without a second descriptive line.
 
@@ -59,7 +94,8 @@ The guided tour is integrated into `index.html`; `tour.html` is only a redirect 
 ## Files
 
 ```
-index.html                 the iframe-ready map, with the integrated guided tour
+index.html                 the iframe-ready map, with the integrated guided tour (?lang=en|it)
+it/index.html              redirect to ../?lang=it, for the Italian embed
 tour.html                  redirect to index.html for old links
 map.js                     MapLibre setup, CARTO styling, markers, popups, locator
 tour.js                    guided-tour sequence, buttons and keyboard controls

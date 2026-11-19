@@ -428,8 +428,9 @@ function refreshRiverLabels() {
   }
 
   // setData re-renders the map, which fires idle again: bail out when nothing
-  // changed instead of looping.
-  const key = features.map(f => {
+  // changed instead of looping. The language is part of the key, so switching
+  // it rebuilds the labels even if the viewport is the same.
+  const key = state.lang + '|' + features.map(f => {
     const [lng, lat] = f.geometry.coordinates;
     return `${f.properties.name}|${lng.toFixed(5)}|${lat.toFixed(5)}|${f.properties.bearing}`;
   }).sort().join(';');
@@ -647,7 +648,11 @@ function addCountryLabels() {
     type: 'FeatureCollection',
     features: COUNTRY_LABELS.map(label => ({
       type: 'Feature',
-      properties: { name: label.name, major: !!label.major, sea: !!label.sea },
+      properties: {
+        name: label[state.lang] || label.en,
+        major: !!label.major,
+        sea: !!label.sea
+      },
       geometry: { type: 'Point', coordinates: [label.coords[1], label.coords[0]] }
     }))
   };
@@ -953,8 +958,9 @@ PLACES.forEach(addPlace);
 
 
 function applyLang() {
-  const t = I18N[state.lang];
+  const t = I18N[state.lang] || I18N.en;
   document.documentElement.lang = state.lang;
+  document.title = t.mapLabel;
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const k = el.dataset.i18n;
     if (t[k] !== undefined) el.textContent = t[k];
@@ -962,6 +968,20 @@ function applyLang() {
   document.querySelectorAll('[data-i18n-html]').forEach(el => {
     const k = el.dataset.i18nHtml;
     if (t[k] !== undefined) el.innerHTML = t[k];
+  });
+  // ARIA and image descriptions have no text children, so they carry the
+  // translation keys in data-i18n-aria-label and data-i18n-alt.
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+    const k = el.dataset.i18nAriaLabel;
+    if (t[k] !== undefined) el.setAttribute('aria-label', t[k]);
+  });
+  document.querySelectorAll('[data-i18n-title]').forEach(el => {
+    const k = el.dataset.i18nTitle;
+    if (t[k] !== undefined) el.setAttribute('title', t[k]);
+  });
+  document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+    const k = el.dataset.i18nAlt;
+    if (t[k] !== undefined) el.setAttribute('alt', t[k]);
   });
   markers.forEach(({ p, labelEl }) => {
     labelEl.textContent = p.label[state.lang].name;

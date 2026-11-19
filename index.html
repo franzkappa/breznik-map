@@ -441,10 +441,10 @@
 </style>
 </head>
 <body>
-<div id="map" aria-label="Interactive map of Breznik and Bulgaria’s water crisis"></div>
+<div id="map" aria-label="Interactive map of Breznik and Bulgaria’s water crisis" data-i18n-aria-label="mapLabel"></div>
 
-<aside class="panel" aria-label="Map legend">
-  <button class="panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-label="Toggle legend"><span class="chev">−</span></button>
+<aside class="panel" aria-label="Map legend" data-i18n-aria-label="legendLabel">
+  <button class="panel-toggle" id="panel-toggle" type="button" aria-expanded="true" aria-label="Toggle legend" data-i18n-aria-label="toggleLegend"><span class="chev">−</span></button>
   <div class="eyebrow" data-i18n="eyebrow">Bulgaria • Water and democracy</div>
   <h1 data-i18n-html="title">Breznik and<br><em>the water crisis</em></h1>
   <p class="deck" data-i18n="deck">A map of the places that show how, in Bulgaria, access to drinking water exposes fault lines in democracy and social inequality.</p>
@@ -473,26 +473,26 @@
   </a>
 </div>
 
-<div class="locator" aria-label="Locator map">
+<div class="locator" aria-label="Locator map" data-i18n-aria-label="locatorLabel">
   <div class="locator-map" id="locator-map">
-    <img src="assets/locator.webp" alt="Locator map of Bulgaria in the Balkans">
+    <img src="assets/locator.webp" alt="Locator map of Bulgaria in the Balkans" data-i18n-alt="locatorAlt">
     <span class="locator-dot" id="locator-dot"></span>
     <span class="locator-rect" id="locator-rect"></span>
   </div>
 </div>
 
-<div class="tour" role="group" aria-label="Guided tour of the map">
-  <span class="tour-label">Tour</span>
-  <button class="tour-btn" id="tour-prev" type="button" aria-label="Previous place" disabled>
+<div class="tour" role="group" aria-label="Guided tour of the map" data-i18n-aria-label="tourGroupLabel">
+  <span class="tour-label" data-i18n="tourLabel">Tour</span>
+  <button class="tour-btn" id="tour-prev" type="button" aria-label="Previous place" data-i18n-aria-label="tourPrev" disabled>
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4.5 7.5 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
   </button>
   <div class="tour-count" id="tour-count"><b>–</b>&nbsp;/&nbsp;<span id="tour-total">9</span></div>
-  <button class="tour-btn" id="tour-next" type="button" aria-label="Next place">
+  <button class="tour-btn" id="tour-next" type="button" aria-label="Next place" data-i18n-aria-label="tourNext">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 16.5 12 9 19.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="square"/></svg>
   </button>
-  <button class="tour-btn tour-home" id="tour-overview" type="button" aria-label="Back to overview" title="Back to overview">
+  <button class="tour-btn tour-home" id="tour-overview" type="button" aria-label="Back to overview" title="Back to overview" data-i18n-aria-label="tourOverviewLabel" data-i18n-title="tourOverviewLabel">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.4 12 5l8 6.4V20h-5.2v-5.1H9.2V20H4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-    <span class="tour-home-label">Overview</span>
+    <span class="tour-home-label" data-i18n="tourOverview">Overview</span>
   </button>
 </div>
 <span class="sr-only" id="tour-live" aria-live="polite"></span>
@@ -645,21 +645,21 @@ const PLACES = [
 // centroids for Greece and Turkey fall outside the frame and sometimes land on
 // the wrong side of a border.
 const COUNTRY_LABELS = [
-  { name:'Bulgaria', coords:[42.90,25.50], major:true },
-  { name:'Romania', coords:[44.35,25.20] },
-  { name:'Serbia', coords:[43.30,21.90] },
-  { name:'Kosovo', coords:[42.60,20.90] },
-  { name:'Montenegro', coords:[42.90,19.10] },
-  { name:'Albania', coords:[41.30,20.00] },
-  { name:'North Macedonia', coords:[41.60,21.70] },
-  { name:'Greece', coords:[41.30,24.40] },
-  { name:'Turkey', coords:[41.40,27.00] },
-  { name:'Bosnia and Herzegovina', coords:[44.20,18.40] },
-  { name:'Croatia', coords:[45.40,18.60] },
-  { name:'Hungary', coords:[46.40,20.20] },
-  { name:'Moldova', coords:[46.20,28.60] },
-  { name:'Ukraine', coords:[45.80,29.00] },
-  { name:'Black Sea', coords:[43.10,28.50], sea:true }
+  { en:'Bulgaria', it:'Bulgaria', coords:[42.90,25.50], major:true },
+  { en:'Romania', it:'Romania', coords:[44.35,25.20] },
+  { en:'Serbia', it:'Serbia', coords:[43.30,21.90] },
+  { en:'Kosovo', it:'Kosovo', coords:[42.60,20.90] },
+  { en:'Montenegro', it:'Montenegro', coords:[42.90,19.10] },
+  { en:'Albania', it:'Albania', coords:[41.30,20.00] },
+  { en:'North Macedonia', it:'Macedonia del Nord', coords:[41.60,21.70] },
+  { en:'Greece', it:'Grecia', coords:[41.30,24.40] },
+  { en:'Turkey', it:'Turchia', coords:[41.40,27.00] },
+  { en:'Bosnia and Herzegovina', it:'Bosnia Erzegovina', coords:[44.20,18.40] },
+  { en:'Croatia', it:'Croazia', coords:[45.40,18.60] },
+  { en:'Hungary', it:'Ungheria', coords:[46.40,20.20] },
+  { en:'Moldova', it:'Moldavia', coords:[46.20,28.60] },
+  { en:'Ukraine', it:'Ucraina', coords:[45.80,29.00] },
+  { en:'Black Sea', it:'Mar Nero', coords:[43.10,28.50], sea:true }
 ];
 
 const I18N = {
@@ -672,11 +672,56 @@ const I18N = {
     kRoad:'Roads', kRiver:'Rivers', kBorder:'Borders',
     source:'Basemap and country shapes: © CARTO · © OpenStreetMap contributors · Hillshade: Esri, USGS, NGA, NASA and contributors · Locator: Natural Earth',
     attrib:'© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
-    loading:'Loading map'
+    loading:'Loading map',
+    mapLabel:'Interactive map of Breznik and Bulgaria’s water crisis',
+    legendLabel:'Map legend',
+    toggleLegend:'Toggle legend',
+    locatorLabel:'Locator map',
+    locatorAlt:'Locator map of Bulgaria in the Balkans',
+    tourLabel:'Tour',
+    tourGroupLabel:'Guided tour of the map',
+    tourPrev:'Previous place',
+    tourNext:'Next place',
+    tourOverview:'Overview',
+    tourOverviewLabel:'Back to overview',
+    tourPlace:'Place {i} of {n}: {name}',
+    openPopup:'{name} — open popup'
+  },
+  it:{
+    eyebrow:'Bulgaria • Acqua e democrazia',
+    title:'Breznik e<br><em>la crisi idrica</em>',
+    deck:'Una mappa dei luoghi che mostrano come, in Bulgaria, l’accesso all’acqua potabile faccia emergere le fratture della democrazia e le disuguaglianze sociali.',
+    legendTitle:'Legenda',
+    kTown:'Città', kWater:'Acqua', kMine:'Miniera',
+    kRoad:'Strade', kRiver:'Fiumi', kBorder:'Confini',
+    source:'Mappa di base e confini: © CARTO · © OpenStreetMap contributors · Hillshade: Esri, USGS, NGA, NASA e contributori · Insetto: Natural Earth',
+    attrib:'© <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+    loading:'Caricamento della mappa',
+    mapLabel:'Mappa interattiva di Breznik e della crisi idrica in Bulgaria',
+    legendLabel:'Legenda della mappa',
+    toggleLegend:'Mostra o nascondi la legenda',
+    locatorLabel:'Mappa di localizzazione',
+    locatorAlt:'Mappa di localizzazione della Bulgaria nei Balcani',
+    tourLabel:'Tour',
+    tourGroupLabel:'Tour guidato della mappa',
+    tourPrev:'Luogo precedente',
+    tourNext:'Luogo successivo',
+    tourOverview:'Panoramica',
+    tourOverviewLabel:'Torna alla panoramica',
+    tourPlace:'Luogo {i} di {n}: {name}',
+    openPopup:'{name} — apri la scheda'
   }
 };
 
-const state = { lang:'en', baseZoom:0, open:null };
+// The language comes from the host page's iframe: the Italian article embeds
+// it/?lang=it, the English one it/ (see README, "Embed"). Anything else falls
+// back to English, so an old link without the parameter keeps working.
+function langFromQuery() {
+  const lang = new URLSearchParams(window.location.search).get('lang');
+  return lang === 'it' ? 'it' : 'en';
+}
+
+const state = { lang:langFromQuery(), baseZoom:0, open:null };
 const markers = [];
 
 function accent(cat){ return COLORS[cat] || COLORS.town; }
@@ -703,7 +748,7 @@ function popupHTML(p){
 <script src="assets/place-labels.js?v=20261110-2"></script>
 <script src="assets/water-names.js?v=20261110-1"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script src="map.js?v=20261111-34"></script>
-<script src="tour.js?v=20261110-9"></script>
+<script src="map.js?v=20261119-35"></script>
+<script src="tour.js?v=20261119-10"></script>
 </body>
 </html>
