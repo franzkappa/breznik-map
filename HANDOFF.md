@@ -37,14 +37,15 @@ inglese nell'articolo EN, italiano in quello IT di balcanicaucaso.org.
   di un impianto di depurazione" (lungo: valutare accorciamento).
 - **`I18N.it`**: nuovo `deck` ("…metta in luce le fratture della democrazia
   e le disuguaglianze sociali."); `source` con "Inset map" al posto di
-  "Insetto"; "Hillshade" lasciato invariato.
+  "Insetto"; "Hillshade" lasciato invariato; voci della legenda "Bacini
+  idrici" e "Siti minerari" (da "Acqua" e "Miniera").
 - Cifra abitanti Breznik confermata `5.426 abitanti`.
 
 ## Verificato
 
 - `./scripts/check.sh`: `ALL CHECKS PASS` (2026-11-19).
-- In browser locale `?lang=it`: titolo, deck, legenda, riga fonte, crediti
-  "Inset map", etichette pin ("Bacino idrico di Krassava — apri la scheda"),
+- In browser locale `?lang=it`: titolo, deck, legenda ("Bacini idrici",
+  "Siti minerari"), riga fonte, crediti "Inset map", etichette pin ("Bacino idrico di Krassava — apri la scheda"),
   popup Krassava con testo nuovo, tour "Luogo 4 di 11".
 - `?lang=en`: titolo e pagina invariati.
 - **Non verificato**: console JS del browser (il pannello non era
