@@ -10,12 +10,45 @@ inglese nell'articolo EN, italiano in quello IT di balcanicaucaso.org.
 
 - **Pubblicato**: `c3c27ed` su `origin/main` (task bilingue `b5e0628` +
   HANDOFF). Deploy GitHub Pages verificato in produzione.
+- **Rilettura redazionale IT completata** (2026-11-19): 13 popup, `deck` e
+  riga `source` in `I18N.it`. Modifiche solo testuali in `index.html`, nessun
+  tocco a `map.js`/`tour.js` → cache-bust invariato
+  (`map.js?v=20261119-35`, `tour.js?v=20261119-10`).
 - Embed pronto per le due bozze Fusion/Avada: istruzioni nel README, sezione
   **Embed** (incluso il formato `[fusion_code]` in base64).
 - `screenshot-nomi-fiumi-illeggibili/` è materiale utente non tracciato: va
   lasciato fuori dai commit.
 - Repo `franzkappa/breznik-map`; preview GitHub Pages con `robots.txt` noindex.
 - In locale: `python3 -m http.server 8000` → http://localhost:8000
+
+## Cosa è cambiato (rilettura IT)
+
+- **Bacini**: "bacino idrico di Krassava / Studena / Gorni Dabnik" in
+  `label`, `kicker` e `title`.
+- **Collina del Bardo**: da "Colle Bardo"; `stat` 929 m, testo con
+  "San Nikola" e "giacimento di oro e argento di Milin Kamak".
+- **Stomana**: kicker "Industria e istituzioni", stat "Autorizzazioni
+  concesse nonostante gli avvertimenti", "mancanza di controllo pubblico".
+- **Pernik / Pleven**: stat "Circa 100.000 persone colpite" / "Più di
+  100mila persone colpite" (allineate anche a `label.it.sub`).
+- **Konska / Studena**: sottotitoli etichetta allineati al popup
+  ("Si prosciuga ogni estate", "Bacino idrico di Studena").
+- **Gorni Dabnik**: kicker "La promessa", stat "Proposta di realizzazione
+  di un impianto di depurazione" (lungo: valutare accorciamento).
+- **`I18N.it`**: nuovo `deck` ("…metta in luce le fratture della democrazia
+  e le disuguaglianze sociali."); `source` con "Inset map" al posto di
+  "Insetto"; "Hillshade" lasciato invariato.
+- Cifra abitanti Breznik confermata `5.426 abitanti`.
+
+## Verificato
+
+- `./scripts/check.sh`: `ALL CHECKS PASS` (2026-11-19).
+- In browser locale `?lang=it`: titolo, deck, legenda, riga fonte, crediti
+  "Inset map", etichette pin ("Bacino idrico di Krassava — apri la scheda"),
+  popup Krassava con testo nuovo, tour "Luogo 4 di 11".
+- `?lang=en`: titolo e pagina invariati.
+- **Non verificato**: console JS del browser (il pannello non era
+  disponibile in sessione); ricontrollare prima di considerare chiuso il task.
 
 ## Cosa è cambiato (i18n, opzione A)
 
@@ -57,9 +90,10 @@ In produzione (`github.io`, dopo il deploy di `c3c27ed`):
 
 ## Prossimo task
 
-1. La redazione inserisce i due embed nelle bozze Fusion (snippet in README,
+1. Controllo console in `/?lang=it` e `/?lang=en` con Playwright/DOM (in
+   questa sessione non è stato possibile), poi embed nelle bozze Fusion.
+2. La redazione inserisce i due embed nelle bozze Fusion (snippet in README,
    sezione **Embed**) e verifica la resa dentro l'articolo.
-2. Rilettura redazionale dei testi italiani (popup e interfaccia).
 
 Criteri di accettazione embed:
 
@@ -69,9 +103,9 @@ Criteri di accettazione embed:
 
 ## Problemi aperti
 
-- **Testi italiani dei POI e di `I18N` non riletti dalla redazione**: sono
-  prerequisito della pubblicazione IT. Confrontare con le forme usate dal
-  sito; la cifra abitanti Breznik (`5,426` / `5.426`) resta da confermare.
+- **Rilettura IT fatta** (2026-11-19): da decidere con la redazione se
+  accorciare lo `stat` di Gorni Dabnik e se uniformare "monte Bardo" (popup
+  Breznik) con "Collina del Bardo".
 - Lingua anche nei widget MapLibre di default (NavigationControl, attributo
   compatto): restano "Zoom in/out" se esposti; non visibili sulle etichette.
 - Densità etichette fiumi (~50 a z9.4) e parole tagliate ai bordi: invariate.
