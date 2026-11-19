@@ -50,6 +50,25 @@ Notes:
 - If the iframe is pasted through a shortcode (`[fusion_code]`) that strips `loading`, nothing breaks; it only means the map starts loading immediately.
 - To preview another language from the console: `?lang=en` (or no parameter).
 
+### Pasted through Avada / Fusion Builder
+
+balcanicaucaso.org uses Avada. Its `[fusion_code]` block stores the markup as **base64** of the HTML, which is why the published embed code arrives as a long `PGlmcmFtZ…` string:
+
+```
+[fusion_code admin_label="" render_logics=""]PGlmcmFtZSBzdHlsZT0i…PC9pZnJhbWU+[/fusion_code]
+```
+
+Both forms work: paste the plain `<iframe …>` in the block's HTML field and Fusion re-encodes it, or paste the base64 in the raw-text field. To build the base64 of a snippet:
+
+```bash
+python3 -c 'import base64,sys;print(base64.b64encode(sys.stdin.read().encode()).decode())'
+```
+
+The payloads used for the two articles, with the original embed's attributes (`style="border:1px #FFFFFF none"`, `width="100%"`, `height="800px"`, `scrolling="no"`, `frameborder="no"`), are:
+
+- **English**: `<iframe style="border:1px #FFFFFF none" src="https://franzkappa.github.io/breznik-map/" title="Breznik and the water crisis — interactive map" width="100%" height="800px" scrolling="no" frameborder="no" allow="fullscreen"></iframe>`
+- **Italian**: the same markup with `src="https://franzkappa.github.io/breznik-map/?lang=it"` and `title="Breznik e la crisi idrica — mappa interattiva"`.
+
 ## Basemap
 
 The map now uses a **tiled, vector basemap** instead of a single local raster image, so roads and water stay sharp at every zoom level.
@@ -127,7 +146,8 @@ The map uses the coordinates verified in `verification/`: 12 pins plus Sofia as 
 
 ```bash
 python3 -m http.server 8000
-# open http://localhost:8000
+# English: http://localhost:8000
+# Italian: http://localhost:8000/?lang=it (or http://localhost:8000/it/)
 ```
 
 Quick check before a commit:
@@ -135,6 +155,8 @@ Quick check before a commit:
 ```bash
 ./scripts/check.sh
 ```
+
+The script cannot run the JavaScript: after a change, reload the page and check the console in **both** languages.
 
 You can also open `index.html` directly from disk; the local highlight, borders and labels are scripts, not fetched GeoJSON files. Network access is required for the CARTO style/tiles and the ArcGIS hillshade. The CARTO, OpenStreetMap and Esri/USGS/NASA attributions must remain visible; see `verification/README.md` for the POI audit.
 

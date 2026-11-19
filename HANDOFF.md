@@ -8,11 +8,10 @@ inglese nell'articolo EN, italiano in quello IT di balcanicaucaso.org.
 
 ## Stato attuale (2026-11-19)
 
-- Base pubblicata: `da9e56a` su `origin/main`; la versione bilingue `b5e0628`
-  è in pubblicazione.
-- Working tree di questo task: `index.html`, `map.js`, `tour.js`,
-  `scripts/check.sh`, `README.md`, `it/index.html` (nuovo), `HANDOFF.md`.
-  **Non ancora committato.**
+- **Pubblicato**: `c3c27ed` su `origin/main` (task bilingue `b5e0628` +
+  HANDOFF). Deploy GitHub Pages verificato in produzione.
+- Embed pronto per le due bozze Fusion/Avada: istruzioni nel README, sezione
+  **Embed** (incluso il formato `[fusion_code]` in base64).
 - `screenshot-nomi-fiumi-illeggibili/` è materiale utente non tracciato: va
   lasciato fuori dai commit.
 - Repo `franzkappa/breznik-map`; preview GitHub Pages con `robots.txt` noindex.
@@ -38,7 +37,9 @@ inglese nell'articolo EN, italiano in quello IT di balcanicaucaso.org.
 - `scripts/check.sh`: aggiunti `it/index.html`, `lang=it` e `it:{`.
 - README: nuova sezione **Embed** con i due snippet e le note.
 
-## Verificato (Playwright, server locale)
+## Verificato (Playwright)
+
+In locale:
 
 - `?lang=it`: titolo, h1, deck, legenda, fonte, loader, aria/label, `alt`
   inset, pulsanti tour, popup Breznik ("5.426 abitanti", testo IT), aria-live
@@ -49,12 +50,16 @@ inglese nell'articolo EN, italiano in quello IT di balcanicaucaso.org.
   già accadeva con "Overview".
 - Console: 0 errori, 0 warning. `./scripts/check.sh`: `ALL CHECKS PASS`.
 
+In produzione (`github.io`, dopo il deploy di `c3c27ed`):
+
+- `…/breznik-map/` → EN, `map.js?v=20261119-35`; `…/breznik-map/it/` → 200 e
+  redirect a `/?lang=it`; legenda e tour tradotti; console pulita.
+
 ## Prossimo task
 
-1. La redazione inserisce i due embed nelle bozze (snippet in README, sezione
-   **Embed**) e verifica su balcanicaucaso.org.
-2. Se serve, commit e `/publish` di questo task (repo `franzkappa/breznik-map`,
-   non di CIJI).
+1. La redazione inserisce i due embed nelle bozze Fusion (snippet in README,
+   sezione **Embed**) e verifica la resa dentro l'articolo.
+2. Rilettura redazionale dei testi italiani (popup e interfaccia).
 
 Criteri di accettazione embed:
 
@@ -102,4 +107,4 @@ Esito ultima esecuzione (2026-11-19): `ALL CHECKS PASS`.
 
 - Ultimo aggiornamento: 2026-11-19.
 - Base: `da9e56a` (`origin/main`).
-- Commit del task: `b5e0628` (locale, da pubblicare).
+- Commit pubblicati: `b5e0628` (bilingue), `c3c27ed` (HANDOFF).
